@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cuts & Style | Premium Barber Hub Baglung</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts representing the premium matte look of the shop -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Core Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         body { font-family: 'Outfit', sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -18,10 +22,14 @@
 </head>
 <body class="bg-[#0b0c0e] text-slate-100 min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950 antialiased">
 
-    <!-- Header -->
-    <header class="bg-[#111317]/90 backdrop-blur-md border-b border-slate-800/40 sticky top-0 z-50">
+    <!-- Global Toast Container (Replacing browser alerts with premium notifications) -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-2 pointer-events-none max-w-sm w-full px-4"></div>
+
+    <!-- Global Header Navigation -->
+    <header class="bg-[#111317]/90 backdrop-blur-md border-b border-slate-800/40 sticky top-0 z-50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
             <div class="flex items-center space-x-3 cursor-pointer group" id="logo-home">
+                <!-- Amber gradient button representing the warm decorative lightbulbs of the shop -->
                 <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center text-slate-950 transition-transform group-hover:rotate-12 duration-300 shadow-xl shadow-amber-500/10">
                     <i class="fas fa-scissors text-2xl"></i>
                 </div>
@@ -30,7 +38,8 @@
                     <span class="text-[11px] text-slate-400 block tracking-widest uppercase font-medium"><i class="fas fa-map-marker-alt text-amber-500 mr-1"></i> Baglung Bazar</span>
                 </div>
             </div>
-            <button id="toggle-admin-btn" class="relative bg-gradient-to-b from-slate-800 to-slate-900 text-amber-400 text-xs font-bold px-5 py-3 rounded-xl border border-slate-700/50 shadow-md flex items-center space-x-2">
+            
+            <button id="toggle-admin-btn" class="relative group overflow-hidden bg-gradient-to-b from-slate-800 to-slate-900 hover:from-slate-750 hover:to-slate-850 text-amber-400 text-xs font-bold px-5 py-3 rounded-xl border border-slate-700/50 shadow-md transition-all duration-200 flex items-center space-x-2">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span>Barber Console</span>
             </button>
@@ -41,228 +50,323 @@
     <div id="loading-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50">
         <div class="text-center space-y-3">
             <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p class="text-xs text-slate-400 tracking-wider font-medium">Syncing with Google Database...</p>
+            <p class="text-xs text-slate-400 tracking-wider font-medium">Updating Google Spreadsheet...</p>
         </div>
     </div>
 
     <!-- CUSTOMER VIEW -->
-    <main id="customer-view" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-1 w-full">
-        <section class="mb-8 md:mb-12 rounded-3xl border border-slate-800/80 shadow-2xl relative overflow-hidden bg-gradient-to-r from-black via-slate-950/90 to-transparent">
-            <div class="absolute inset-0 z-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style="background-image: url('unnamed.webp');"></div>
+    <main id="customer-view" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-1 w-full transition-all duration-300">
+        
+        <!-- Premium Visual Shop Hero Banner displaying client's uploaded station workspace image -->
+        <section class="mb-8 md:mb-12 rounded-3xl border border-slate-800/80 shadow-2xl relative overflow-hidden bg-gradient-to-r from-black via-slate-950/95 to-transparent">
+            <div class="absolute inset-0 z-0 bg-cover bg-center opacity-35 mix-blend-luminosity hover:opacity-50 transition-opacity duration-500" style="background-image: url('unnamed.webp');"></div>
             <div class="absolute inset-0 z-0 bg-gradient-to-t from-[#0b0c0e] via-transparent to-amber-500/5"></div>
+            
             <div class="relative z-10 max-w-3xl p-6 md:p-14 text-left">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-4"><i class="fas fa-circle text-[6px] text-amber-400 animate-pulse mr-2"></i>Google Sheets Database Link Active</span>
-                <h1 class="text-3xl sm:text-6xl font-black text-white tracking-tight mb-4 leading-none">Luxury Grooming,<br>On Your Terms</h1>
-                <p class="text-slate-300 text-sm sm:text-lg font-light leading-relaxed max-w-xl">Step into Baglung's premier boutique grooming space. Book a session instantly and look out for authorization approvals.</p>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-4 backdrop-blur-sm"><i class="fas fa-circle text-[6px] text-amber-400 animate-pulse mr-2"></i>Linked to Google Sheet</span>
+                <h1 class="text-3xl sm:text-6xl font-black text-white tracking-tight mb-4 leading-none">Luxury Grooming,<br class="hidden sm:block">On Your Terms</h1>
+                <p class="text-slate-300 text-sm sm:text-lg font-light leading-relaxed max-w-xl">Step into Baglung's premier boutique grooming space. Select your styling preferences, pick your custom time, and submit instantly to our sheets database.</p>
             </div>
         </section>
 
+        <!-- Adaptive Layout Columns Container -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left Interaction Module Blocks -->
             <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Service Options Pack Layout -->
                 <div class="bg-[#111317] p-5 sm:p-7 rounded-2xl border border-slate-800/80 shadow-md">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-                        <h2 class="text-base sm:text-lg font-bold text-white flex items-center"><span class="w-7 h-7 bg-amber-500 text-slate-950 rounded-lg flex items-center justify-center text-xs font-black mr-3">1</span>Select Styling Lineup</h2>
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-white flex items-center">
+                                <span class="w-7 h-7 bg-amber-500 text-slate-950 rounded-lg flex items-center justify-center text-xs font-black mr-3">1</span>
+                                Select Styling Lineup
+                            </h2>
+                        </div>
                         <div class="relative w-full sm:w-48">
                             <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                            <input type="text" id="service-search" placeholder="Filter services..." class="w-full pl-8 pr-3 py-1.5 bg-slate-950 rounded-lg border border-slate-800 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500">
+                            <input type="text" id="service-search" placeholder="Filter services..." class="w-full pl-8 pr-3 py-1.5 bg-slate-950 rounded-lg border border-slate-800 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60">
                         </div>
                     </div>
                     
                     <div class="grid grid-cols-1 gap-3" id="services-grid">
-                        <label class="service-item group relative flex items-center justify-between p-4 bg-slate-900/30 hover:bg-slate-900/80 rounded-xl cursor-pointer transition-all duration-200 border border-slate-800/60 shadow-sm">
+                        <!-- Card 1 -->
+                        <label class="service-item group relative flex items-center justify-between p-4 bg-slate-900/30 hover:bg-slate-900/80 rounded-xl cursor-pointer transition-all duration-200 border border-slate-800/60 hover:border-amber-500/40 shadow-sm">
                             <div class="flex items-center space-x-4">
-                                <input type="checkbox" value="150" data-name="Normal Haircut" class="service-checkbox appearance-none w-5 h-5 bg-[#0b0c0e] border border-slate-700 rounded-md checked:bg-amber-500 transition-all focus:ring-0 cursor-pointer">
+                                <div class="relative flex items-center">
+                                    <input type="checkbox" value="150" data-name="Normal Haircut" class="service-checkbox appearance-none w-5 h-5 bg-[#0b0c0e] border border-slate-700 rounded-md checked:bg-amber-500 checked:border-amber-500 transition-all duration-200 focus:ring-0 cursor-pointer">
+                                    <i class="fas fa-check absolute text-[10px] text-slate-950 font-bold left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 checkbox-check"></i>
+                                </div>
                                 <div>
-                                    <span class="font-bold text-white block group-hover:text-amber-400 text-sm sm:text-base">Normal Haircut</span>
-                                    <span class="text-xs text-slate-400 font-light block mt-0.5">Classic precision clipper architectural line adjustment</span>
+                                    <span class="font-bold text-white block group-hover:text-amber-400 transition-colors text-sm sm:text-base">Normal Haircut</span>
+                                    <span class="text-xs text-slate-400 font-light block mt-0.5">Classic precision scissor cut adjustment tailored around your head profile</span>
                                 </div>
                             </div>
-                            <span class="text-amber-400 font-extrabold text-sm sm:text-base bg-slate-950/80 px-3 py-1 rounded-lg border border-slate-800">Rs. 150</span>
+                            <span class="text-amber-400 font-extrabold text-sm sm:text-base whitespace-nowrap ml-2 bg-slate-950/80 px-3 py-1 rounded-lg border border-slate-800">Rs. 150</span>
                         </label>
 
-                        <label class="service-item group relative flex items-center justify-between p-4 bg-slate-900/30 hover:bg-slate-900/80 rounded-xl cursor-pointer transition-all duration-200 border border-slate-800/60 shadow-sm">
+                        <!-- Card 2 -->
+                        <label class="service-item group relative flex items-center justify-between p-4 bg-slate-900/30 hover:bg-slate-900/80 rounded-xl cursor-pointer transition-all duration-200 border border-slate-800/60 hover:border-amber-500/40 shadow-sm">
                             <div class="flex items-center space-x-4">
-                                <input type="checkbox" value="100" data-name="Beard Trim & Shave" class="service-checkbox appearance-none w-5 h-5 bg-[#0b0c0e] border border-slate-700 rounded-md checked:bg-amber-500 transition-all focus:ring-0 cursor-pointer">
+                                <div class="relative flex items-center">
+                                    <input type="checkbox" value="100" data-name="Beard Trim & Shave" class="service-checkbox appearance-none w-5 h-5 bg-[#0b0c0e] border border-slate-700 rounded-md checked:bg-amber-500 checked:border-amber-500 transition-all duration-200 focus:ring-0 cursor-pointer">
+                                    <i class="fas fa-check absolute text-[10px] text-slate-950 font-bold left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 checkbox-check"></i>
+                                </div>
                                 <div>
-                                    <span class="font-bold text-white block group-hover:text-amber-400 text-sm sm:text-base">Beard Trim & Shave</span>
-                                    <span class="text-xs text-slate-400 font-light block mt-0.5">Hot towel lineup razor styling contour processing</span>
+                                    <span class="font-bold text-white block group-hover:text-amber-400 transition-colors text-sm sm:text-base">Beard Trim & Shave</span>
+                                    <span class="text-xs text-slate-400 font-light block mt-0.5">Warm towel alignment & straight-razor cheek line sculpting</span>
                                 </div>
                             </div>
-                            <span class="text-amber-400 font-extrabold text-sm sm:text-base bg-slate-950/80 px-3 py-1 rounded-lg border border-slate-800">Rs. 100</span>
+                            <span class="text-amber-400 font-extrabold text-sm sm:text-base whitespace-nowrap ml-2 bg-slate-950/80 px-3 py-1 rounded-lg border border-slate-800">Rs. 100</span>
                         </label>
 
-                        <label class="service-item group relative flex items-center justify-between p-4 bg-slate-900/30 hover:bg-slate-900/80 rounded-xl cursor-pointer transition-all duration-200 border border-slate-800/60 shadow-sm">
+                        <!-- Card 3 -->
+                        <label class="service-item group relative flex items-center justify-between p-4 bg-slate-900/30 hover:bg-slate-900/80 rounded-xl cursor-pointer transition-all duration-200 border border-slate-800/60 hover:border-amber-500/40 shadow-sm">
                             <div class="flex items-center space-x-4">
-                                <input type="checkbox" value="400" data-name="Premium Hair Color" class="service-checkbox appearance-none w-5 h-5 bg-[#0b0c0e] border border-slate-700 rounded-md checked:bg-amber-500 transition-all focus:ring-0 cursor-pointer">
+                                <div class="relative flex items-center">
+                                    <input type="checkbox" value="400" data-name="Premium Hair Color" class="service-checkbox appearance-none w-5 h-5 bg-[#0b0c0e] border border-slate-700 rounded-md checked:bg-amber-500 checked:border-amber-500 transition-all duration-200 focus:ring-0 cursor-pointer">
+                                    <i class="fas fa-check absolute text-[10px] text-slate-950 font-bold left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 checkbox-check"></i>
+                                </div>
                                 <div>
-                                    <span class="font-bold text-white block group-hover:text-amber-400 text-sm sm:text-base">Premium Hair Color</span>
-                                    <span class="text-xs text-slate-400 font-light block mt-0.5">Deep dye tone lock pigmentation restoration</span>
+                                    <span class="font-bold text-white block group-hover:text-amber-400 transition-colors text-sm sm:text-base">Premium Hair Color</span>
+                                    <span class="text-xs text-slate-400 font-light block mt-0.5">Deep dye restoration, gray covers, and treatment alignment</span>
                                 </div>
                             </div>
-                            <span class="text-amber-400 font-extrabold text-sm sm:text-base bg-slate-950/80 px-3 py-1 rounded-lg border border-slate-800">Rs. 400</span>
+                            <span class="text-amber-400 font-extrabold text-sm sm:text-base whitespace-nowrap ml-2 bg-slate-950/80 px-3 py-1 rounded-lg border border-slate-800">Rs. 400</span>
                         </label>
                     </div>
                 </div>
 
+                <!-- Custom Calendar Schedule Engine Block -->
                 <div class="bg-[#111317] p-5 sm:p-7 rounded-2xl border border-slate-800/80 shadow-md">
-                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center mb-4"><span class="w-7 h-7 bg-amber-500 text-slate-950 rounded-lg flex items-center justify-center text-xs font-black mr-3">2</span>Target Date & Time</h2>
+                    <div class="mb-4">
+                        <h2 class="text-base sm:text-lg font-bold text-white flex items-center">
+                            <span class="w-7 h-7 bg-amber-500 text-slate-950 rounded-lg flex items-center justify-center text-xs font-black mr-3">2</span>
+                            Target Date & Time
+                        </h2>
+                    </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Appointment Day</label>
-                            <input type="date" id="appointment-date" class="w-full px-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm font-medium text-white focus:outline-none focus:border-amber-500 cursor-pointer">
+                            <div class="relative">
+                                <i class="far fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-amber-500 text-sm"></i>
+                                <input type="date" id="appointment-date" class="w-full pl-11 pr-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm font-medium text-white focus:outline-none focus:border-amber-500/80 transition duration-150 cursor-pointer">
+                            </div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Target Clock Slot</label>
-                            <input type="time" id="appointment-time" class="w-full px-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm font-medium text-white focus:outline-none focus:border-amber-500 cursor-pointer">
+                            <div class="relative">
+                                <i class="far fa-clock absolute left-4 top-1/2 -translate-y-1/2 text-amber-500 text-sm"></i>
+                                <input type="time" id="appointment-time" class="w-full pl-11 pr-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm font-medium text-white focus:outline-none focus:border-amber-500/80 transition duration-150 cursor-pointer">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Right Interactive Invoice & Bio Details Module -->
             <div class="lg:col-span-5 space-y-6">
-                <div class="bg-[#111317] p-5 sm:p-7 rounded-2xl border border-slate-800/80 shadow-md lg:sticky lg:top-28">
-                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center mb-4"><span class="w-7 h-7 bg-amber-500 text-slate-950 rounded-lg flex items-center justify-center text-xs font-black mr-3">3</span>Contact Coordinates</h2>
-                    <div class="space-y-4 mb-5">
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">First & Last Name</label>
-                            <input type="text" id="client-name" placeholder="E.g., Anil Shrestha" class="w-full px-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500">
+                <div class="bg-[#111317] p-5 sm:p-7 rounded-2xl border border-slate-800/80 shadow-md lg:sticky lg:top-28 flex flex-col justify-between">
+                    <div>
+                        <div class="mb-4">
+                            <h2 class="text-base sm:text-lg font-bold text-white flex items-center">
+                                <span class="w-7 h-7 bg-amber-500 text-slate-950 rounded-lg flex items-center justify-center text-xs font-black mr-3">3</span>
+                                Contact Coordinates
+                            </h2>
                         </div>
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Mobile Phone Number</label>
-                            <input type="tel" id="client-phone" placeholder="98XXXXXXXX" class="w-full px-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500">
+                        
+                        <div class="space-y-4 mb-5">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">First & Last Name</label>
+                                <input type="text" id="client-name" placeholder="E.g., Anil Shrestha" class="w-full px-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 transition duration-150">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Mobile Phone Number</label>
+                                <input type="tel" id="client-phone" placeholder="98XXXXXXXX" class="w-full px-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 transition duration-150">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Grooming Specifications (Optional)</label>
+                                <textarea id="client-notes" rows="2" placeholder="Low taper fade, leave length on top..." class="w-full px-4 py-3 bg-slate-900 rounded-xl border border-slate-800 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 transition duration-150 resize-none"></textarea>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Custom Directives (Optional)</label>
-                            <textarea id="client-notes" rows="2" placeholder="Low skin fade, leave length on top..." class="w-full px-4 py-3 bg-slate-900 rounded-xl border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500 resize-none"></textarea>
+
+                        <!-- Live Visual Realtime Manifest Summary Block -->
+                        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 text-sm space-y-3">
+                            <h3 class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Live Cost Settlement</h3>
+                            <div class="space-y-2 border-b border-slate-800/80 pb-3" id="summary-services">
+                                <p class="text-slate-600 italic font-light text-xs">No styling adjustments picked yet.</p>
+                            </div>
+                            
+                            <div class="flex justify-between items-center text-xs text-slate-400 font-light">
+                                <span>Station Reservation & Sanitation Fee</span>
+                                <span class="font-medium text-slate-200">Rs. 50</span>
+                            </div>
+
+                            <div class="text-xs text-slate-400 pt-1 flex items-center" id="summary-datetime">
+                                <i class="far fa-calendar-alt mr-2 text-slate-600"></i><span class="italic text-slate-600">Awaiting schedule parameters...</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 text-sm space-y-3">
-                        <h3 class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Live Cost Settlement</h3>
-                        <div class="space-y-2 border-b border-slate-800/80 pb-3" id="summary-services">
-                            <p class="text-slate-600 italic font-light text-xs">No styling adjustments picked yet.</p>
-                        </div>
-                        <div class="flex justify-between items-center text-xs text-slate-400 font-light">
-                            <span>Station Maintenance Fee</span>
-                            <span class="font-medium text-slate-200">Rs. 50</span>
-                        </div>
-                        <div class="text-xs text-slate-400 pt-1 flex items-center" id="summary-datetime">
-                            <i class="far fa-calendar-alt mr-2 text-slate-600"></i><span class="italic text-slate-600">Awaiting schedule dates...</span>
-                        </div>
-                    </div>
-
+                    <!-- CTA Submission Actions Trigger Area (Laptop display) -->
                     <div class="mt-6 pt-4 border-t border-slate-800 hidden lg:block">
                         <div class="flex justify-between items-center mb-4">
                             <span class="text-slate-400 font-medium text-sm">Aggregated Fee total:</span>
                             <span class="text-3xl font-black text-amber-400 tracking-tight" id="total-price-display">Rs. 50</span>
                         </div>
-                        <button type="button" id="book-btn" class="w-full bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-bold py-4 rounded-xl shadow-lg shadow-amber-500/10 text-xs uppercase tracking-wide">Submit Seating Request</button>
+                        <button type="button" id="book-btn" class="w-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold py-4 rounded-xl shadow-lg shadow-amber-500/10 hover:shadow-amber-500/20 active:scale-[0.99] transition-all duration-150 tracking-wide text-xs uppercase">
+                            Submit Seating Request
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Mobile Sticky Bar -->
-    <div class="lg:hidden bg-[#111317]/95 backdrop-blur-lg border-t border-slate-800 p-4 sticky bottom-0 z-40 mobile-bottom-bar" id="mobile-sticky-action-bar">
+    <!-- MOBILE PERSISTENT BOTTOM NAVIGATION FOOTER ACTION BAR -->
+    <div class="lg:hidden bg-[#111317]/95 backdrop-blur-lg border-t border-slate-800 p-4 sticky bottom-0 z-40 mobile-bottom-bar transition-transform duration-300" id="mobile-sticky-action-bar">
         <div class="max-w-md mx-auto flex items-center justify-between gap-4">
             <div class="text-left">
                 <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Estimate</span>
                 <span class="text-2xl font-black text-amber-400 tracking-tight" id="mobile-price-display">Rs. 50</span>
             </div>
-            <button type="button" id="mobile-book-btn" class="flex-1 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-bold py-3.5 px-4 rounded-xl text-center text-xs font-bold uppercase tracking-wider">Request Slot</button>
+            <button type="button" id="mobile-book-btn" class="flex-1 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-bold py-3.5 px-4 rounded-xl text-center text-xs font-bold uppercase tracking-wider active:scale-[0.97] transition-all">
+                Request Slot
+            </button>
         </div>
     </div>
 
     <!-- ADMIN CONSOLE MANAGEMENT COMPONENT -->
-    <main id="admin-view" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-1 w-full hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-5 mb-6 gap-4">
+    <main id="admin-view" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-1 w-full hidden transition-all duration-300">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-5 mb-6 md:mb-8 gap-4">
             <div>
-                <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center"><span class="w-2.5 h-6 bg-amber-500 rounded-md inline-block mr-2.5"></span>Google Sheets Cloud Panel</h1>
-                <p class="text-xs text-slate-400 font-light mt-0.5">Live structural pipeline directly linked to your barber shop spreadsheet document.</p>
+                <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center">
+                    <span class="w-2.5 h-6 bg-amber-500 rounded-md inline-block mr-2.5"></span>Barber Queue Management
+                </h1>
+                <p class="text-xs text-slate-400 font-light mt-0.5">Verify pending consumer bookings, approve configurations, or modify open slot assignments.</p>
             </div>
-            <button id="back-to-booking-btn" class="text-xs bg-slate-900 text-slate-300 font-bold px-4 py-3 rounded-xl border border-slate-800 flex items-center justify-center"><i class="fas fa-arrow-left mr-2"></i> Return to Client View</button>
+            <button id="back-to-booking-btn" class="w-full sm:w-auto text-xs bg-slate-900 hover:bg-slate-850 text-slate-300 font-bold px-4 py-3 rounded-xl border border-slate-800 transition duration-150 flex items-center justify-center">
+                <i class="fas fa-arrow-left mr-2"></i> Return to Client View
+            </button>
         </div>
 
-        <!-- Dashboard Statistics Monitoring -->
+        <!-- Metrics Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div class="bg-[#111317] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
-                <div><span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Awaiting Review</span><span id="stat-pending" class="text-2xl font-black text-amber-400 block mt-1">0 Slots</span></div>
-                <div class="w-10 h-10 bg-amber-500/10 text-amber-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-hourglass-start"></i></div>
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Awaiting Verification</span>
+                    <span id="stat-pending" class="text-2xl font-black text-amber-400 block mt-1">0 Slots</span>
+                </div>
+                <div class="w-10 h-10 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-hourglass-start"></i></div>
             </div>
             <div class="bg-[#111317] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
-                <div><span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Confirmed Seats</span><span id="stat-confirmed" class="text-2xl font-black text-emerald-400 block mt-1">0 Slots</span></div>
-                <div class="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-check-circle"></i></div>
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Confirmed Chairs</span>
+                    <span id="stat-confirmed" class="text-2xl font-black text-emerald-400 block mt-1">0 Slots</span>
+                </div>
+                <div class="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-check-circle"></i></div>
             </div>
             <div class="bg-[#111317] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
-                <div><span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Spreadsheet Revenue</span><span id="stat-revenue" class="text-2xl font-black text-indigo-400 block mt-1">Rs. 0</span></div>
-                <div class="w-10 h-10 bg-indigo-500/10 text-indigo-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-wallet"></i></div>
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Projected Revenue Matrix</span>
+                    <span id="stat-revenue" class="text-2xl font-black text-indigo-400 block mt-1">Rs. 0</span>
+                </div>
+                <div class="w-10 h-10 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-wallet"></i></div>
             </div>
         </div>
 
-        <!-- Sheet Log Display Elements -->
+        <!-- Master Queue Data List Container Layer -->
         <div class="bg-[#111317] rounded-2xl border border-slate-800/80 overflow-hidden shadow-xl">
+            <!-- Desktop Table view -->
             <div class="hidden md:block overflow-x-auto">
                 <table class="w-full text-left text-sm text-slate-300">
                     <thead class="bg-slate-950/60 text-[11px] uppercase tracking-wider font-bold text-slate-400 border-b border-slate-800">
                         <tr>
                             <th class="px-6 py-4">Client Contact</th>
-                            <th class="px-6 py-4">Date/Time Map</th>
+                            <th class="px-6 py-4">Requested Coordinate</th>
                             <th class="px-6 py-4">Directives & Notes</th>
-                            <th class="px-6 py-4">Line/Fee</th>
+                            <th class="px-6 py-4">Treatment Line/Fee</th>
                             <th class="px-6 py-4">Status Monitor</th>
-                            <th class="px-6 py-4 text-right">Actions</th>
+                            <th class="px-6 py-4 text-right">Barber Actions</th>
                         </tr>
                     </thead>
                     <tbody id="admin-desktop-table" class="divide-y divide-slate-800/60"></tbody>
                 </table>
             </div>
+
+            <!-- Mobile Stack Card views -->
             <div id="admin-mobile-cards" class="md:hidden divide-y divide-slate-800 p-2 space-y-3 bg-slate-950/20"></div>
+
+            <!-- Blank state alert -->
             <div id="no-appointments" class="text-center py-16 text-slate-600 hidden">
-                <div class="w-16 h-16 bg-slate-950 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 text-slate-700 border border-slate-800"><i class="fas fa-cloud-download-alt"></i></div>
-                <span class="font-medium text-slate-400 block text-sm">Database Is Clean</span>
+                <div class="w-16 h-16 bg-slate-950 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 text-slate-700 border border-slate-800/60"><i class="fas fa-cloud-download-alt"></i></div>
+                <span class="font-medium text-slate-400 block text-sm">No Active Booking Inquiries</span>
+                <span class="text-xs font-light text-slate-600 max-w-xs mx-auto block mt-1">Your Google Sheets connection represents a clean database ledger.</span>
             </div>
         </div>
     </main>
 
-    <!-- Success Modal -->
-    <div id="success-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-[#111317] border border-slate-800 max-w-sm w-full rounded-2xl p-6 text-center">
-            <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl mx-auto mb-3"><i class="fas fa-check"></i></div>
-            <h3 class="text-lg font-bold text-white tracking-tight">Saved to Google Sheet!</h3>
-            <p class="text-slate-400 text-xs font-light mt-1.5 leading-relaxed">Your reservation setup parameters have been successfully appended into our spreadsheet database matrices.</p>
-            <button type="button" id="close-modal-btn" class="mt-5 w-full bg-slate-800 text-white text-xs font-semibold py-3 rounded-xl">Dismiss Ticket</button>
+    <!-- CUSTOM CONFIRMATION MODAL (Elegant replacement for window.confirm) -->
+    <div id="confirm-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-[#111317] border border-slate-800 max-w-sm w-full rounded-2xl p-6 shadow-2xl">
+            <h3 class="text-lg font-bold text-white tracking-tight mb-2 flex items-center"><i class="fas fa-exclamation-triangle text-amber-500 mr-2"></i> Confirm Action</h3>
+            <p id="confirm-modal-text" class="text-slate-400 text-xs leading-relaxed mb-6">Are you sure you want to proceed with this configuration shift?</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button id="confirm-cancel-btn" class="bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold py-2.5 rounded-xl text-xs transition duration-150">Cancel</button>
+                <button id="confirm-proceed-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition duration-150">Proceed</button>
+            </div>
         </div>
     </div>
 
-    <!-- Shift Adjust Drawer Modal -->
+    <!-- RESPONSE FEEDBACK POPUP RECEIPT -->
+    <div id="success-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-[#111317] border border-slate-800 max-w-sm w-full rounded-2xl p-6 shadow-2xl relative text-center">
+            <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl mx-auto mb-3 shadow-lg shadow-emerald-500/5">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white tracking-tight">Request Logged!</h3>
+            <p class="text-slate-400 text-xs font-light mt-1.5 leading-relaxed">Your reservation coordinates have successfully synchronized with the Cuts & Style Google Sheets ledger.</p>
+            <button type="button" id="close-modal-btn" class="mt-5 w-full bg-slate-800 hover:bg-slate-750 border border-slate-700 text-white text-xs font-semibold py-3 rounded-xl transition duration-150">Dismiss Ticket</button>
+        </div>
+    </div>
+
+    <!-- DYNAMIC BARBER SLOT CORRECTION DRAWER MODAL -->
     <div id="reschedule-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-[#111317] border border-slate-800 max-w-md w-full rounded-2xl p-5 sm:p-6 shadow-2xl">
-            <h3 class="text-base sm:text-lg font-bold text-white mb-4 flex items-center"><i class="fas fa-clock mr-2 text-amber-500"></i>Override Sheet Coordinates</h3>
+            <div class="flex items-center space-x-3 mb-2">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center"><i class="fas fa-clock"></i></div>
+                <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">Override & Assign Session Slot</h3>
+            </div>
+            <p class="text-xs text-slate-400 font-light mb-4 leading-relaxed">Input alternate schedule dimensions to update this client file in the Google Sheet.</p>
+            
             <input type="hidden" id="target-booking-id">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">New Date</label>
-                    <input type="date" id="new-barber-date" class="w-full p-3 bg-slate-950 rounded-xl border border-slate-800 text-sm text-white">
+                    <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Assigned Date</label>
+                    <input type="date" id="new-barber-date" class="w-full p-3 bg-slate-950 rounded-xl border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:border-amber-500">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">New Hour</label>
-                    <input type="time" id="new-barber-time" class="w-full p-3 bg-slate-950 rounded-xl border border-slate-800 text-sm text-white">
+                    <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">Assigned Hour</label>
+                    <input type="time" id="new-barber-time" class="w-full p-3 bg-slate-950 rounded-xl border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:border-amber-500">
                 </div>
             </div>
+
             <div class="grid grid-cols-2 gap-3">
-                <button type="button" id="cancel-reschedule-btn" class="bg-slate-800 text-slate-300 py-2.5 rounded-xl text-xs">Abort</button>
-                <button type="button" id="save-reschedule-btn" class="bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs">Update Sheet</button>
+                <button type="button" id="cancel-reschedule-btn" class="bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold py-2.5 rounded-xl text-xs transition duration-150">Abort Change</button>
+                <button type="button" id="save-reschedule-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs shadow-md shadow-amber-500/10 transition duration-150">Push Seat Adjust</button>
             </div>
         </div>
     </div>
 
-    <footer class="bg-slate-950 border-t border-slate-900/40 py-4 text-center text-[11px] text-slate-600 font-light">&copy; 2026 Cuts & Style · Baglung Bazar Database App.</footer>
+    <footer class="bg-slate-950 border-t border-slate-900/40 py-4 text-center text-[11px] text-slate-600 font-light tracking-wide">
+        &copy; 2026 Cuts & Style · Baglung Bazar Terminal Hub. All Rights Reserved.
+    </footer>
 
+    <!-- Logic Controller Script -->
     <script>
-        // --- IMPORTANT CONFIGURATION INTERSECTION ---
-        // REPLACE THE STRING BELOW WITH YOUR LIVE DEPLOYED GOOGLE APPS SCRIPT URL!
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzH0UrgjuAdetgIaaPWsjlx-i5FM6vRLiy9uad5uCx2ten5nGyvZ-DUVU3be0PjdRp1TA/exec';
+        // --- 🔗 GOOGLE APPS SCRIPT WEB APP INTEGRATION LINK ---
+        // PASTE YOUR GENERATED GOOGLE SCRIPT WEB APP URL INSIDE THE SINGLE QUOTES BELOW:
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEj4FEvm50JWnhpUMEkfsk5y2SWGWCImo5xzh8MeFNQWwI2MkUOI8FoSm9Wg2JgYh90Q/exec';
 
         document.addEventListener('DOMContentLoaded', () => {
             const customerView = document.getElementById('customer-view');
@@ -273,6 +377,7 @@
             const mobileStickyActionBar = document.getElementById('mobile-sticky-action-bar');
             const loadingOverlay = document.getElementById('loading-overlay');
 
+            // Client configuration vectors
             const checkboxes = document.querySelectorAll('.service-checkbox');
             const serviceSearch = document.getElementById('service-search');
             const dateInput = document.getElementById('appointment-date');
@@ -281,46 +386,94 @@
             const phoneInput = document.getElementById('client-phone');
             const notesInput = document.getElementById('client-notes');
             
+            // Layout fields
             const totalDisplay = document.getElementById('total-price-display');
             const mobilePriceDisplay = document.getElementById('mobile-price-display');
             const summaryServices = document.getElementById('summary-services');
             const summaryDatetime = document.getElementById('summary-datetime');
             
+            // Submission nodes
             const bookBtn = document.getElementById('book-btn');
             const mobileBookBtn = document.getElementById('mobile-book-btn');
             const successModal = document.getElementById('success-modal');
             const closeModalBtn = document.getElementById('close-modal-btn');
+
+            // Shift modifiers
             const rescheduleModal = document.getElementById('reschedule-modal');
             const saveRescheduleBtn = document.getElementById('save-reschedule-btn');
             const cancelRescheduleBtn = document.getElementById('cancel-reschedule-btn');
             
-            let currentTotal = 50;
-            let cloudCacheMemory = [];
+            let currentTotal = 50; // Dynamic baseline seat reservation setup cost
+            let cloudRegistry = [];
 
             function showLoader() { loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); }
             function hideLoader() { loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex'); }
 
-            // --- NAVIGATION CONTROLLERS ---
-            toggleAdminBtn.addEventListener('click', () => {
-                if(adminView.classList.contains('hidden')) { 
-                    customerView.classList.add('hidden');
-                    mobileStickyActionBar.classList.add('translate-y-full', 'hidden');
-                    adminView.classList.remove('hidden');
-                    syncPullFromGoogleSheets();
-                } else { 
-                    routeToClientView(); 
+            // --- PREMIUM TOAST NOTIFICATION UTILITIES ---
+            function showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `p-4 rounded-xl shadow-2xl border text-xs font-bold flex items-center space-x-2.5 transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto backdrop-blur-md`;
+                
+                if (type === 'success') {
+                    toast.className += ' bg-emerald-950/90 text-emerald-400 border-emerald-500/20';
+                    toast.innerHTML = `<div class="w-5 h-5 bg-emerald-500/20 text-emerald-400 flex items-center justify-center rounded-md"><i class="fas fa-check-circle text-xs"></i></div> <span>${message}</span>`;
+                } else if (type === 'error') {
+                    toast.className += ' bg-red-950/90 text-red-400 border-red-500/20';
+                    toast.innerHTML = `<div class="w-5 h-5 bg-red-500/20 text-red-400 flex items-center justify-center rounded-md"><i class="fas fa-exclamation-circle text-xs"></i></div> <span>${message}</span>`;
+                } else {
+                    toast.className += ' bg-slate-900/95 text-amber-400 border-slate-800';
+                    toast.innerHTML = `<div class="w-5 h-5 bg-amber-500/20 text-amber-500 flex items-center justify-center rounded-md"><i class="fas fa-info-circle text-xs"></i></div> <span>${message}</span>`;
                 }
-            });
-            backToBookingBtn.addEventListener('click', routeToClientView);
-            logoHome.addEventListener('click', routeToClientView);
+                
+                container.appendChild(toast);
+                toast.offsetHeight; // trigger layout reflow
+                toast.classList.remove('translate-y-4', 'opacity-0');
+                
+                setTimeout(() => {
+                    toast.classList.add('translate-y-4', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            }
 
-            function routeToClientView() {
+            // --- PREMIUM DIALOG CONFIRM REPLACEMENT ---
+            let confirmResolver = null;
+            function runConfirmAlert(msg) {
+                document.getElementById('confirm-modal-text').innerText = msg;
+                const modal = document.getElementById('confirm-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                return new Promise(resolve => { confirmResolver = resolve; });
+            }
+            document.getElementById('confirm-proceed-btn').addEventListener('click', () => {
+                document.getElementById('confirm-modal').classList.add('hidden');
+                if(confirmResolver) confirmResolver(true);
+            });
+            document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
+                document.getElementById('confirm-modal').classList.add('hidden');
+                if(confirmResolver) confirmResolver(false);
+            });
+
+            // --- PANEL ROUTING CONTROLLERS ---
+            function routeToClient() {
                 adminView.classList.add('hidden');
                 customerView.classList.remove('hidden');
                 mobileStickyActionBar.classList.remove('translate-y-full', 'hidden');
             }
+            function routeToAdmin() {
+                customerView.classList.add('hidden');
+                mobileStickyActionBar.classList.add('translate-y-full', 'hidden');
+                adminView.classList.remove('hidden');
+                syncPullFromGoogleSheets();
+            }
 
-            // --- CLIENT INPUT ENGINE ---
+            toggleAdminBtn.addEventListener('click', () => {
+                if(adminView.classList.contains('hidden')) { routeToAdmin(); } else { routeToClient(); }
+            });
+            backToBookingBtn.addEventListener('click', routeToClient);
+            logoHome.addEventListener('click', routeToClient);
+
+            // --- SERVICE SEARCH FILTER ---
             serviceSearch.addEventListener('input', (e) => {
                 const query = e.target.value.toLowerCase();
                 document.querySelectorAll('.service-item').forEach(item => {
@@ -328,69 +481,90 @@
                 });
             });
 
-            function recalculateBill() {
+            // --- LIVE BILLING MATRIX REFLEX SYSTEM ---
+            function recalculateBillMatrix() {
                 currentTotal = 50;
                 let listHTML = '';
+                
                 checkboxes.forEach(box => {
+                    const labelWrap = box.closest('label');
+                    const visualCheck = labelWrap.querySelector('.checkbox-check');
+                    
                     if (box.checked) {
                         currentTotal += parseInt(box.value);
-                        listHTML += `<div class="flex justify-between items-center text-slate-300 text-xs"><span>• ${box.getAttribute('data-name')}</span><span class="text-amber-400 font-semibold">Rs. ${box.value}</span></div>`;
+                        listHTML += `<div class="flex justify-between items-center text-slate-300 font-medium text-xs"><span>• ${box.getAttribute('data-name')}</span><span class="text-amber-400 font-semibold">Rs. ${box.value}</span></div>`;
+                        labelWrap.classList.add('border-amber-500', 'bg-slate-900/80');
+                        if(visualCheck) visualCheck.classList.remove('opacity-0');
+                    } else {
+                        labelWrap.classList.remove('border-amber-500', 'bg-slate-900/80');
+                        if(visualCheck) visualCheck.classList.add('opacity-0');
                     }
                 });
+
                 totalDisplay.innerText = `Rs. ${currentTotal}`;
                 mobilePriceDisplay.innerText = `Rs. ${currentTotal}`;
                 summaryServices.innerHTML = listHTML || `<p class="text-slate-600 italic font-light text-xs">No styling adjustments picked yet.</p>`;
             }
-            checkboxes.forEach(box => box.addEventListener('change', recalculateBill));
+            checkboxes.forEach(box => box.addEventListener('change', recalculateBillMatrix));
 
-            dateInput.addEventListener('input', () => {
-                summaryDatetime.innerHTML = dateInput.value && timeInput.value ? `<i class="far fa-calendar-check mr-2 text-amber-500"></i><span class="text-slate-300">${dateInput.value} @ ${timeInput.value}</span>` : `<i class="far fa-calendar-alt mr-2 text-slate-600"></i><span class="italic text-slate-600">Awaiting scheduling...</span>`;
-            });
-            timeInput.addEventListener('input', () => dateInput.dispatchEvent(new Event('input')));
+            function refreshDateTimeDisplay() {
+                if(dateInput.value && timeInput.value) {
+                    summaryDatetime.innerHTML = `<i class="far fa-calendar-check mr-2 text-amber-500"></i><span class="text-slate-300 font-semibold">${dateInput.value} <span class="text-amber-400">@</span> ${timeInput.value}</span>`;
+                } else {
+                    summaryDatetime.innerHTML = `<i class="far fa-calendar-alt mr-2 text-slate-600"></i><span class="italic text-slate-600">Awaiting schedule parameters...</span>`;
+                }
+            }
+            dateInput.addEventListener('input', refreshDateTimeDisplay);
+            timeInput.addEventListener('input', refreshDateTimeDisplay);
 
             // --- GOOGLE SHEETS ASYNC AJAX CONTROLLERS ---
             async function syncPullFromGoogleSheets() {
-                if(SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) return;
+                if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
+                    showToast('Link Google Sheet first! Set script URL on line 217', 'error');
+                    return;
+                }
                 showLoader();
                 try {
                     const response = await fetch(SCRIPT_URL);
-                    cloudCacheMemory = await response.getJson() || [];
+                    cloudRegistry = await response.json() || [];
+                    showToast('Data sync complete!', 'success');
                 } catch (err) {
-                    console.error("Fetch alignment tracking fault:", err);
+                    showToast('Database synchronization timeout.', 'error');
                 }
                 hideLoader();
                 renderAdminDashboard();
             }
 
             async function transmitPushToGoogleSheets(payload) {
-                if(SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
-                    alert('System deployment block: Paste your valid Google Web App Deployment execution script endpoint link token inside the codebase frame line 198 to link your live sheets data.');
+                if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
+                    showToast('Deployment incomplete! Paste your Web App script token on line 217.', 'error');
                     return;
                 }
                 showLoader();
                 try {
                     await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors', // standard framework integration with cross-origin Google apps
+                        mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
                     successModal.classList.remove('hidden');
                     successModal.classList.add('flex');
+                    showToast('Reservation posted successfully!', 'success');
                 } catch(err) {
-                    alert('Database sync connection timed out.');
+                    showToast('Communication fault with Google Services.', 'error');
                 }
                 hideLoader();
             }
 
-            // --- CORE FORM TRANSACTION PROCESSING ---
-            function runBookingSubmission() {
+            // --- CORE FORM COMPILER SUBMISSIONS ---
+            function compileBookingRequest() {
                 const name = nameInput.value.trim();
                 const phone = phoneInput.value.trim();
-                const notes = notesInput.value.trim() || 'None.';
+                const notes = notesInput.value.trim() || 'No notes.';
                 
                 if (currentTotal === 50 || !dateInput.value || !timeInput.value || !name || !phone) {
-                    alert('Please finalize and complete all coordinate parameters before saving files.');
+                    showToast('Invalid entry details. Select treatments and complete the fields.', 'error');
                     return;
                 }
 
@@ -410,69 +584,98 @@
                     status: 'Pending Verification'
                 });
             }
-            bookBtn.addEventListener('click', runBookingSubmission);
-            mobileBookBtn.addEventListener('click', runBookingSubmission);
+            bookBtn.addEventListener('click', compileBookingRequest);
+            mobileBookBtn.addEventListener('click', compileBookingRequest);
 
             closeModalBtn.addEventListener('click', () => {
                 successModal.classList.add('hidden');
+                successModal.classList.remove('flex');
                 nameInput.value = ''; phoneInput.value = ''; dateInput.value = ''; timeInput.value = ''; notesInput.value = '';
                 checkboxes.forEach(box => box.checked = false);
-                recalculateBill();
-                dateInput.dispatchEvent(new Event('input'));
+                recalculateBillMatrix();
+                refreshDateTimeDisplay();
             });
 
-            // --- ADMIN METRIC DASHBOARD PARSERS ---
+            // --- ADMIN MATRIX CONSOLE DRAW ENGINE ---
             function renderAdminDashboard() {
                 const deskBody = document.getElementById('admin-desktop-table');
                 const mobStack = document.getElementById('admin-mobile-cards');
                 const emptyState = document.getElementById('no-appointments');
 
-                let pendingCount = 0, confirmedCount = 0, totalRev = 0;
-                deskBody.innerHTML = ''; mobStack.innerHTML = '';
+                let pendingCount = 0, confirmedCount = 0, projectedRevenue = 0;
+                deskBody.innerHTML = '';
+                mobStack.innerHTML = '';
 
-                if(cloudCacheMemory.length === 0) {
+                if(cloudRegistry.length === 0) {
                     emptyState.classList.remove('hidden');
+                    document.getElementById('stat-pending').innerText = '0 Slots';
+                    document.getElementById('stat-confirmed').innerText = '0 Slots';
+                    document.getElementById('stat-revenue').innerText = 'Rs. 0';
                     return;
                 }
                 emptyState.classList.add('hidden');
 
-                cloudCacheMemory.forEach(log => {
+                cloudRegistry.forEach(log => {
                     if (log.status === 'Pending Verification') pendingCount++;
                     else confirmedCount++;
-                    totalRev += parseInt(log.bill || 0);
+                    projectedRevenue += parseInt(log.bill || 0);
 
-                    let badgeColor = log.status === 'Confirmed Chair Slot' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-yellow-500/10 text-yellow-400';
-                    const badge = `<span class="px-2 py-0.5 text-[10px] uppercase font-bold border border-slate-700 rounded ${badgeColor}">${log.status}</span>`;
+                    let badgeStyles = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+                    if(log.status === 'Confirmed Chair Slot') badgeStyles = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                    if(log.status.startsWith('Alternate Shift') || log.status.startsWith('Shifted')) badgeStyles = "bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
 
-                    // Desktop row building
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-900 border-b border-slate-800 text-xs";
-                    tr.innerHTML = `
-                        <td class="px-6 py-4"><span class="font-bold text-white block">${log.name}</span><span class="text-slate-500">${log.phone}</span></td>
-                        <td class="px-6 py-4"><span class="text-slate-300 block">${log.date}</span><span class="text-amber-400">${log.time}</span></td>
-                        <td class="px-6 py-4"><p class="text-slate-400 italic max-w-[140px] truncate">${log.notes}</p></td>
-                        <td class="px-6 py-4"><span class="text-slate-400 block max-w-[140px] truncate">${log.treatments}</span><span class="text-emerald-400 font-bold">Rs. ${log.bill}</span></td>
-                        <td class="px-6 py-4">${badge}</td>
-                        <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
-                            <button onclick="updateSheetStatus('${log.id}', 'Confirmed Chair Slot')" class="bg-emerald-500 text-slate-950 font-bold px-2 py-1 rounded">Approve</button>
-                            <button onclick="openRescheduleWindow('${log.id}','${log.date}','${log.time}')" class="bg-slate-800 text-amber-400 px-2 py-1 rounded">Reschedule</button>
-                            <button onclick="deleteSheetRow('${log.id}')" class="text-slate-600 hover:text-red-400 px-1"><i class="fas fa-trash-alt"></i></button>
+                    const badgeElement = `<span class="px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase rounded-md border ${badgeStyles}">${log.status}</span>`;
+
+                    // 1. Desktop Render Row
+                    const row = document.createElement('tr');
+                    row.className = "hover:bg-slate-850/40 transition-colors border-b border-slate-800/40 text-xs sm:text-sm";
+                    row.innerHTML = `
+                        <td class="px-6 py-4">
+                            <span class="font-bold text-white block">${log.name}</span>
+                            <span class="text-xs text-slate-500 block font-medium mt-0.5"><i class="fas fa-phone-alt text-slate-600 mr-1"></i>${log.phone}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-slate-300 font-semibold block">${log.date}</span>
+                            <span class="text-xs text-amber-400 font-bold block mt-0.5"><i class="far fa-clock mr-1"></i>${log.time}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-xs text-slate-400 italic max-w-[160px] truncate" title="${log.notes}">${log.notes}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-xs text-slate-400 block max-w-[150px] truncate" title="${log.treatments}">${log.treatments}</span>
+                            <span class="text-xs font-bold text-emerald-400 block mt-0.5">Rs. ${log.bill}</span>
+                        </td>
+                        <td class="px-6 py-4">${badgeElement}</td>
+                        <td class="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
+                            <button onclick="updateSheetStatus('${log.id}', 'Confirmed Chair Slot')" class="approve-action-btn bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 text-xs rounded-xl shadow-sm transition">Approve</button>
+                            <button onclick="openOverrideWindow('${log.id}','${log.date}','${log.time}')" class="modify-action-btn bg-slate-800 hover:bg-slate-750 border border-slate-700 text-amber-400 px-3 py-1.5 text-xs rounded-xl transition">Change Time</button>
+                            <button onclick="deleteSheetRow('${log.id}')" class="delete-action-btn text-slate-600 hover:text-red-400 p-2 transition"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     `;
-                    deskBody.appendChild(tr);
+                    deskBody.appendChild(row);
 
-                    // Mobile card setup
+                    // 2. Mobile Render Card
                     const card = document.createElement('div');
-                    card.className = "p-4 bg-slate-900/60 border border-slate-800 rounded-xl space-y-2 text-xs";
+                    card.className = "p-4 bg-slate-900/60 border border-slate-800/80 rounded-xl space-y-3 shadow-sm text-xs";
                     card.innerHTML = `
-                        <div class="flex justify-between"><div><span class="font-bold text-white block">${log.name}</span><span class="text-slate-500">${log.phone}</span></div> ${badge}</div>
-                        <div class="bg-slate-950 p-2 rounded border border-slate-800 flex justify-between"><span>Date: ${log.date}</span><span class="text-amber-400">Time: ${log.time}</span></div>
-                        <div class="flex justify-between items-center pt-2 border-t border-slate-800">
-                            <span class="font-bold text-emerald-400">Rs. ${log.bill}</span>
-                            <div class="space-x-1">
-                                <button onclick="updateSheetStatus('${log.id}', 'Confirmed Chair Slot')" class="bg-emerald-500 text-slate-950 font-bold px-2 py-1 rounded">Approve</button>
-                                <button onclick="openRescheduleWindow('${log.id}','${log.date}','${log.time}')" class="bg-slate-800 text-amber-400 px-2 py-1 rounded"><i class="fas fa-clock"></i></button>
-                                <button onclick="deleteSheetRow('${log.id}')" class="text-slate-500 px-1"><i class="fas fa-trash-alt"></i></button>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-sm font-bold text-white block">${log.name}</span>
+                                <a href="tel:${log.phone}" class="text-xs text-amber-400 font-medium inline-flex items-center mt-0.5 bg-amber-500/5 px-2 py-0.5 rounded border border-amber-500/10"><i class="fas fa-phone-alt mr-1.5 text-[10px]"></i>${log.phone}</a>
+                            </div>
+                            ${badgeElement}
+                        </div>
+                        <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800 text-[11px] space-y-1">
+                            <div class="flex justify-between"><span>Date: ${log.date}</span><span class="text-amber-400 font-bold">Time: ${log.time}</span></div>
+                            <div class="text-slate-400 text-[10px] truncate"><span class="text-slate-500">Note:</span> ${log.notes}</div>
+                        </div>
+                        <div class="text-xs"><span class="text-slate-500 font-light block">Services:</span><span class="text-slate-300 font-medium block truncate">${log.treatments}</span></div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                            <span class="text-xs font-bold text-emerald-400">Total: Rs. ${log.bill}</span>
+                            <div class="flex items-center space-x-1.5">
+                                <button onclick="updateSheetStatus('${log.id}', 'Confirmed Chair Slot')" class="approve-action-btn bg-emerald-500 text-slate-950 font-bold px-2.5 py-1.5 text-xs rounded-xl">Approve</button>
+                                <button onclick="openOverrideWindow('${log.id}','${log.date}','${log.time}')" class="modify-action-btn bg-slate-800 border border-slate-700 text-amber-400 px-2 py-1.5 text-xs rounded-xl"><i class="fas fa-clock"></i></button>
+                                <button onclick="deleteSheetRow('${log.id}')" class="delete-action-btn text-slate-500 p-1.5 text-xs"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
                     `;
@@ -481,24 +684,45 @@
 
                 document.getElementById('stat-pending').innerText = `${pendingCount} Slots`;
                 document.getElementById('stat-confirmed').innerText = `${confirmedCount} Slots`;
-                document.getElementById('stat-revenue').innerText = `Rs. ${totalRev}`;
+                document.getElementById('stat-revenue').innerText = `Rs. ${projectedRevenue}`;
             }
 
-            // Window level actions mapping
-            window.updateSheetStatus = async function(id, status) {
+            // Window level trigger bindings
+            window.updateSheetStatus = async function(id, targetStateValue) {
+                if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) return;
                 showLoader();
-                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStatus', id: id, status: status }) });
-                syncPullFromGoogleSheets();
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'updateStatus', id: id, status: targetStateValue })
+                    });
+                    showToast('Seating approved!', 'success');
+                    await syncPullFromGoogleSheets();
+                } catch(err) {
+                    showToast('Sync lost with spreadsheet.', 'error');
+                }
+                hideLoader();
             };
 
             window.deleteSheetRow = async function(id) {
-                if(!confirm("Remove from spreadsheet?")) return;
+                const confirmed = await runConfirmAlert("Wipe this reservation record from your Google Sheet?");
+                if(!confirmed) return;
+                
                 showLoader();
-                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: id }) });
-                syncPullFromGoogleSheets();
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'delete', id: id })
+                    });
+                    showToast('Record deleted.', 'success');
+                    await syncPullFromGoogleSheets();
+                } catch(err) {
+                    showToast('Action processing timed out.', 'error');
+                }
+                hideLoader();
             };
 
-            window.openRescheduleWindow = function(id, date, time) {
+            window.openOverrideWindow = function(id, date, time) {
                 document.getElementById('target-booking-id').value = id;
                 document.getElementById('new-barber-date').value = date;
                 document.getElementById('new-barber-time').value = time;
@@ -507,15 +731,44 @@
             };
 
             cancelRescheduleBtn.addEventListener('click', () => rescheduleModal.classList.add('hidden'));
+            
             saveRescheduleBtn.addEventListener('click', async () => {
                 const id = document.getElementById('target-booking-id').value;
-                const d = document.getElementById('new-barber-date').value;
-                const t = document.getElementById('new-barber-time').value;
+                const altDate = document.getElementById('new-barber-date').value;
+                const altTime = document.getElementById('new-barber-time').value;
+
+                if(!altDate || !altTime) {
+                    showToast('Valid coordinates are mandatory.', 'error');
+                    return;
+                }
+
                 rescheduleModal.classList.add('hidden');
                 showLoader();
-                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'reschedule', id: id, date: d, time: t, status: `Shifted: ${d} @ ${t}` }) });
-                syncPullFromGoogleSheets();
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'reschedule',
+                            id: id,
+                            date: altDate,
+                            time: altTime,
+                            status: `Shifted: ${altDate} @ ${altTime}`
+                        })
+                    });
+                    showToast('Sheet timeline updated!', 'success');
+                    await syncPullFromGoogleSheets();
+                } catch(err) {
+                    showToast('Google Sheet connection lost.', 'error');
+                }
+                hideLoader();
             });
+
+            // Initial pull attempt if URL is defined
+            if (!SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
+                syncPullFromGoogleSheets();
+            } else {
+                showToast('Welcome to Cuts & Style! Add Sheet URL on line 217 to activate.', 'info');
+            }
         });
     </script>
 </body>
