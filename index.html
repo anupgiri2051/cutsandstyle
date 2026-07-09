@@ -306,6 +306,27 @@
         </div>
     </main>
 
+    <!-- BARBER PASSWORD VERIFICATION MODAL (New secure authorization dialog) -->
+    <div id="password-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-[#111317] border border-slate-800 max-w-sm w-full rounded-2xl p-6 shadow-2xl relative">
+            <div class="flex items-center space-x-3 mb-3">
+                <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center"><i class="fas fa-lock text-base"></i></div>
+                <h3 class="text-lg font-bold text-white tracking-tight">Console Verification</h3>
+            </div>
+            <p class="text-slate-400 text-xs font-light mb-5 leading-relaxed">Spreadsheet and scheduling queue parameters are locked. Input your shop code below to authorize terminal entry.</p>
+            
+            <div class="mb-5">
+                <label class="block text-[10px] font-bold uppercase text-slate-500 tracking-wider mb-1.5">Access Password</label>
+                <input type="password" id="admin-password-input" placeholder="••••••••" class="w-full px-4 py-3 bg-slate-950 rounded-xl border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:border-amber-500 placeholder-slate-800">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" id="cancel-password-btn" class="bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold py-3 rounded-xl text-xs transition duration-150">Cancel</button>
+                <button type="button" id="submit-password-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl text-xs shadow-md shadow-amber-500/10 transition duration-150">Authorize Access</button>
+            </div>
+        </div>
+    </div>
+
     <!-- CUSTOM CONFIRMATION MODAL (Elegant replacement for window.confirm) -->
     <div id="confirm-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-[#111317] border border-slate-800 max-w-sm w-full rounded-2xl p-6 shadow-2xl">
@@ -366,7 +387,7 @@
     <script>
         // --- 🔗 GOOGLE APPS SCRIPT WEB APP INTEGRATION LINK ---
         // PASTE YOUR GENERATED GOOGLE SCRIPT WEB APP URL INSIDE THE SINGLE QUOTES BELOW:
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEj4FEvm50JWnhpUMEkfsk5y2SWGWCImo5xzh8MeFNQWwI2MkUOI8FoSm9Wg2JgYh90Q/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxV0KdAl4owC9O59d7eH1w5V450sNOJ_tb28F2_I5GdcQ6a5rYM5DmBOB8PMQl47QJ9zg/exec';
 
         document.addEventListener('DOMContentLoaded', () => {
             const customerView = document.getElementById('customer-view');
@@ -376,6 +397,12 @@
             const logoHome = document.getElementById('logo-home');
             const mobileStickyActionBar = document.getElementById('mobile-sticky-action-bar');
             const loadingOverlay = document.getElementById('loading-overlay');
+
+            // Password modal nodes
+            const passwordModal = document.getElementById('password-modal');
+            const adminPasswordInput = document.getElementById('admin-password-input');
+            const submitPasswordBtn = document.getElementById('submit-password-btn');
+            const cancelPasswordBtn = document.getElementById('cancel-password-btn');
 
             // Client configuration vectors
             const checkboxes = document.querySelectorAll('.service-checkbox');
@@ -454,22 +481,56 @@
                 if(confirmResolver) confirmResolver(false);
             });
 
-            // --- PANEL ROUTING CONTROLLERS ---
+            // --- PANEL ROUTING CONTROLLERS WITH PASSWORD SECURITY ---
             function routeToClient() {
                 adminView.classList.add('hidden');
                 customerView.classList.remove('hidden');
                 mobileStickyActionBar.classList.remove('translate-y-full', 'hidden');
+                toggleAdminBtn.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>Barber Console</span>';
             }
             function routeToAdmin() {
                 customerView.classList.add('hidden');
                 mobileStickyActionBar.classList.add('translate-y-full', 'hidden');
                 adminView.classList.remove('hidden');
+                toggleAdminBtn.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Booking Board</span>';
                 syncPullFromGoogleSheets();
             }
 
             toggleAdminBtn.addEventListener('click', () => {
-                if(adminView.classList.contains('hidden')) { routeToAdmin(); } else { routeToClient(); }
+                if(adminView.classList.contains('hidden')) { 
+                    // Open authentication modal first
+                    adminPasswordInput.value = '';
+                    passwordModal.classList.remove('hidden');
+                    passwordModal.classList.add('flex');
+                    setTimeout(() => adminPasswordInput.focus(), 150);
+                } else { 
+                    routeToClient(); 
+                }
             });
+
+            // Handle Password Cancellation
+            cancelPasswordBtn.addEventListener('click', () => {
+                passwordModal.classList.add('hidden');
+                passwordModal.classList.remove('flex');
+                showToast('Authentication cancelled', 'info');
+            });
+
+            // Password Verification routine
+            function verifyPassword() {
+                if (adminPasswordInput.value === 'cuts11') {
+                    passwordModal.classList.add('hidden');
+                    passwordModal.classList.remove('flex');
+                    routeToAdmin();
+                } else {
+                    showToast('Incorrect access code!', 'error');
+                }
+            }
+
+            submitPasswordBtn.addEventListener('click', verifyPassword);
+            adminPasswordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') verifyPassword();
+            });
+
             backToBookingBtn.addEventListener('click', routeToClient);
             logoHome.addEventListener('click', routeToClient);
 
@@ -520,7 +581,7 @@
             // --- GOOGLE SHEETS ASYNC AJAX CONTROLLERS ---
             async function syncPullFromGoogleSheets() {
                 if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
-                    showToast('Link Google Sheet first! Set script URL on line 217', 'error');
+                    showToast('Link Google Sheet first! Set script URL on line 286', 'error');
                     return;
                 }
                 showLoader();
@@ -537,7 +598,7 @@
 
             async function transmitPushToGoogleSheets(payload) {
                 if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
-                    showToast('Deployment incomplete! Paste your Web App script token on line 217.', 'error');
+                    showToast('Deployment incomplete! Paste your Web App script token on line 286.', 'error');
                     return;
                 }
                 showLoader();
@@ -674,7 +735,7 @@
                             <span class="text-xs font-bold text-emerald-400">Total: Rs. ${log.bill}</span>
                             <div class="flex items-center space-x-1.5">
                                 <button onclick="updateSheetStatus('${log.id}', 'Confirmed Chair Slot')" class="approve-action-btn bg-emerald-500 text-slate-950 font-bold px-2.5 py-1.5 text-xs rounded-xl">Approve</button>
-                                <button onclick="openOverrideWindow('${log.id}','${log.date}','${log.time}')" class="modify-action-btn bg-slate-800 border border-slate-700 text-amber-400 px-2 py-1.5 text-xs rounded-xl"><i class="fas fa-clock"></i></button>
+                                <button onclick="openOverrideWindow('${log.id}','${log.date}','${log.time}')" class="modify-action-btn bg-slate-800 border border-slate-700 text-amber-400 px-2.5 py-1.5 text-xs rounded-xl"><i class="fas fa-clock"></i></button>
                                 <button onclick="deleteSheetRow('${log.id}')" class="delete-action-btn text-slate-500 p-1.5 text-xs"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
@@ -767,7 +828,7 @@
             if (!SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
                 syncPullFromGoogleSheets();
             } else {
-                showToast('Welcome to Cuts & Style! Add Sheet URL on line 217 to activate.', 'info');
+                showToast('Welcome to Cuts & Style! Add Sheet URL on line 286 to activate.', 'info');
             }
         });
     </script>
