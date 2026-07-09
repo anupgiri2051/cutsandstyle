@@ -50,7 +50,7 @@
     <div id="loading-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50">
         <div class="text-center space-y-3">
             <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p class="text-xs text-slate-400 tracking-wider font-medium">Updating Google Spreadsheet...</p>
+            <p class="text-xs text-slate-400 tracking-wider font-medium">Securing your premium chair slot...</p>
         </div>
     </div>
 
@@ -341,12 +341,45 @@
 
     <!-- RESPONSE FEEDBACK POPUP RECEIPT -->
     <div id="success-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-[#111317] border border-slate-800 max-w-sm w-full rounded-2xl p-6 shadow-2xl relative text-center">
+        <div class="bg-[#111317] border border-slate-800 max-w-sm w-full rounded-2xl p-6 shadow-2xl relative text-center max-h-[90vh] overflow-y-auto no-scrollbar">
             <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl mx-auto mb-3 shadow-lg shadow-emerald-500/5">
                 <i class="fas fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white tracking-tight">Request Logged!</h3>
-            <p class="text-slate-400 text-xs font-light mt-1.5 leading-relaxed">Your reservation coordinates have successfully synchronized with the Cuts & Style Google Sheets ledger.</p>
+            <p class="text-slate-400 text-xs font-light mt-1.5 leading-relaxed">Your reservation coordinates have successfully synchronized with the Cuts & Style Baglung ledger.</p>
+            
+            <!-- Interactive Top-up Suite -->
+            <div class="mt-5 p-4 bg-slate-950/70 rounded-xl border border-slate-800 text-left">
+                <h4 class="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2 flex items-center justify-between">
+                    <span><i class="fas fa-rocket mr-1.5 text-xs animate-pulse text-amber-400"></i> Seating Top-up Upgrade</span>
+                    <span id="topup-status-badge" class="hidden text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">Applied</span>
+                </h4>
+                <p class="text-[11px] text-slate-400 font-light mb-3">Add premium luxury upgrades to your pending session lineup with a single click:</p>
+                
+                <div class="space-y-2" id="topup-options-container">
+                    <button type="button" id="topup-vip-btn" class="w-full p-2.5 bg-slate-900 hover:bg-slate-850 rounded-lg border border-slate-800 hover:border-amber-500/30 text-left transition duration-150 flex justify-between items-center group">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-200 group-hover:text-amber-400 transition-colors">VIP Fast-Track Queue</span>
+                            <span class="block text-[10px] text-slate-400 font-light">Skip wait list priority on arrival</span>
+                        </div>
+                        <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">+Rs. 50</span>
+                    </button>
+                    
+                    <button type="button" id="topup-wash-btn" class="w-full p-2.5 bg-slate-900 hover:bg-slate-850 rounded-lg border border-slate-800 hover:border-amber-500/30 text-left transition duration-150 flex justify-between items-center group">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-200 group-hover:text-amber-400 transition-colors">Cooling Hair Wash & Massage</span>
+                            <span class="block text-[10px] text-slate-400 font-light">Menthol blast scalp conditioning</span>
+                        </div>
+                        <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">+Rs. 100</span>
+                    </button>
+                </div>
+
+                <div id="topup-applied-receipt" class="hidden mt-3 pt-2 border-t border-slate-800/80 flex justify-between items-center text-xs">
+                    <span class="text-slate-400">Upgraded Seating Fee:</span>
+                    <span class="font-bold text-emerald-400" id="receipt-total-bill">Rs. 50</span>
+                </div>
+            </div>
+
             <button type="button" id="close-modal-btn" class="mt-5 w-full bg-slate-800 hover:bg-slate-750 border border-slate-700 text-white text-xs font-semibold py-3 rounded-xl transition duration-150">Dismiss Ticket</button>
         </div>
     </div>
@@ -425,6 +458,13 @@
             const successModal = document.getElementById('success-modal');
             const closeModalBtn = document.getElementById('close-modal-btn');
 
+            // Topup Upgrade Interactivity
+            const topupVipBtn = document.getElementById('topup-vip-btn');
+            const topupWashBtn = document.getElementById('topup-wash-btn');
+            const topupStatusBadge = document.getElementById('topup-status-badge');
+            const topupAppliedReceipt = document.getElementById('topup-applied-receipt');
+            const receiptTotalBill = document.getElementById('receipt-total-bill');
+
             // Shift modifiers
             const rescheduleModal = document.getElementById('reschedule-modal');
             const saveRescheduleBtn = document.getElementById('save-reschedule-btn');
@@ -432,9 +472,54 @@
             
             let currentTotal = 50; // Dynamic baseline seat reservation setup cost
             let cloudRegistry = [];
+            let lastBookedObject = null;
 
             function showLoader() { loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); }
             function hideLoader() { loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex'); }
+
+            // --- TOPUP TRIGGER BINDINGS ---
+            function applyTopup(name, cost) {
+                if (!lastBookedObject) return;
+                lastBookedObject.bill = parseInt(lastBookedObject.bill) + cost;
+                lastBookedObject.treatments += `, [Top-up: ${name}]`;
+                
+                // Visual feedback in receipt modal
+                topupStatusBadge.classList.remove('hidden');
+                topupAppliedReceipt.classList.remove('hidden');
+                receiptTotalBill.innerText = `Rs. ${lastBookedObject.bill}`;
+                
+                showToast(`Seating upgraded with ${name}!`, 'success');
+                
+                // Silent state save on the background sheets
+                if (!SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
+                    fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'reschedule',
+                            id: lastBookedObject.id,
+                            date: lastBookedObject.date,
+                            time: lastBookedObject.time,
+                            status: lastBookedObject.status,
+                            bill: lastBookedObject.bill,
+                            treatments: lastBookedObject.treatments
+                        })
+                    }).catch(() => {});
+                }
+            }
+
+            topupVipBtn.addEventListener('click', () => {
+                applyTopup('VIP Fast-Track', 50);
+                topupVipBtn.disabled = true;
+                topupVipBtn.classList.add('opacity-40', 'border-emerald-500/30');
+            });
+
+            topupWashBtn.addEventListener('click', () => {
+                applyTopup('Scalp Cleanse & Massage', 100);
+                topupWashBtn.disabled = true;
+                topupWashBtn.classList.add('opacity-40', 'border-emerald-500/30');
+            });
 
             // --- PREMIUM TOAST NOTIFICATION UTILITIES ---
             function showToast(message, type = 'info') {
@@ -581,7 +666,7 @@
             // --- GOOGLE SHEETS ASYNC AJAX CONTROLLERS ---
             async function syncPullFromGoogleSheets() {
                 if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
-                    showToast('Link Google Sheet first! Set script URL on line 286', 'error');
+                    showToast('Link Google Sheet first! Set script URL on line 351', 'error');
                     return;
                 }
                 showLoader();
@@ -597,8 +682,21 @@
             }
 
             async function transmitPushToGoogleSheets(payload) {
+                lastBookedObject = payload; // save reference for top-up mapping
+                
+                // Reset top-up UI elements for a fresh booking
+                topupVipBtn.disabled = false;
+                topupVipBtn.className = "w-full p-2.5 bg-slate-900 hover:bg-slate-850 rounded-lg border border-slate-800 hover:border-amber-500/30 text-left transition duration-150 flex justify-between items-center group";
+                topupWashBtn.disabled = false;
+                topupWashBtn.className = "w-full p-2.5 bg-slate-900 hover:bg-slate-850 rounded-lg border border-slate-800 hover:border-amber-500/30 text-left transition duration-150 flex justify-between items-center group";
+                topupStatusBadge.classList.add('hidden');
+                topupAppliedReceipt.classList.add('hidden');
+
                 if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
-                    showToast('Deployment incomplete! Paste your Web App script token on line 286.', 'error');
+                    successModal.classList.remove('hidden');
+                    successModal.classList.add('flex');
+                    receiptTotalBill.innerText = `Rs. ${currentTotal}`;
+                    showToast('Demo: Seating request compiled.', 'info');
                     return;
                 }
                 showLoader();
@@ -611,6 +709,7 @@
                     });
                     successModal.classList.remove('hidden');
                     successModal.classList.add('flex');
+                    receiptTotalBill.innerText = `Rs. ${payload.bill}`;
                     showToast('Reservation posted successfully!', 'success');
                 } catch(err) {
                     showToast('Communication fault with Google Services.', 'error');
@@ -655,6 +754,7 @@
                 checkboxes.forEach(box => box.checked = false);
                 recalculateBillMatrix();
                 refreshDateTimeDisplay();
+                lastBookedObject = null;
             });
 
             // --- ADMIN MATRIX CONSOLE DRAW ENGINE ---
@@ -677,15 +777,25 @@
                 emptyState.classList.add('hidden');
 
                 cloudRegistry.forEach(log => {
-                    if (log.status === 'Pending Verification') pendingCount++;
-                    else confirmedCount++;
+                    let logStatus = log.status;
+                    let badgeStyles = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+                    
+                    // Override and map internal spreadsheet codes to premium "Approved" visual status
+                    if (logStatus === 'Confirmed Chair Slot' || logStatus === 'Approved') {
+                        logStatus = 'Approved';
+                        badgeStyles = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                        confirmedCount++;
+                    } else {
+                        pendingCount++;
+                    }
+                    
                     projectedRevenue += parseInt(log.bill || 0);
 
-                    let badgeStyles = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
-                    if(log.status === 'Confirmed Chair Slot') badgeStyles = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-                    if(log.status.startsWith('Alternate Shift') || log.status.startsWith('Shifted')) badgeStyles = "bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
+                    if (logStatus.startsWith('Alternate Shift') || logStatus.startsWith('Shifted')) {
+                        badgeStyles = "bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
+                    }
 
-                    const badgeElement = `<span class="px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase rounded-md border ${badgeStyles}">${log.status}</span>`;
+                    const badgeElement = `<span class="px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase rounded-md border ${badgeStyles}">${logStatus}</span>`;
 
                     // 1. Desktop Render Row
                     const row = document.createElement('tr');
@@ -708,7 +818,7 @@
                         </td>
                         <td class="px-6 py-4">${badgeElement}</td>
                         <td class="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
-                            <button onclick="updateSheetStatus('${log.id}', 'Confirmed Chair Slot')" class="approve-action-btn bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 text-xs rounded-xl shadow-sm transition">Approve</button>
+                            <button onclick="updateSheetStatus('${log.id}', 'Approved')" class="approve-action-btn bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 text-xs rounded-xl shadow-sm transition">Approve</button>
                             <button onclick="openOverrideWindow('${log.id}','${log.date}','${log.time}')" class="modify-action-btn bg-slate-800 hover:bg-slate-750 border border-slate-700 text-amber-400 px-3 py-1.5 text-xs rounded-xl transition">Change Time</button>
                             <button onclick="deleteSheetRow('${log.id}')" class="delete-action-btn text-slate-600 hover:text-red-400 p-2 transition"><i class="fas fa-trash-alt"></i></button>
                         </td>
@@ -734,7 +844,7 @@
                         <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
                             <span class="text-xs font-bold text-emerald-400">Total: Rs. ${log.bill}</span>
                             <div class="flex items-center space-x-1.5">
-                                <button onclick="updateSheetStatus('${log.id}', 'Confirmed Chair Slot')" class="approve-action-btn bg-emerald-500 text-slate-950 font-bold px-2.5 py-1.5 text-xs rounded-xl">Approve</button>
+                                <button onclick="updateSheetStatus('${log.id}', 'Approved')" class="approve-action-btn bg-emerald-500 text-slate-950 font-bold px-2.5 py-1.5 text-xs rounded-xl">Approve</button>
                                 <button onclick="openOverrideWindow('${log.id}','${log.date}','${log.time}')" class="modify-action-btn bg-slate-800 border border-slate-700 text-amber-400 px-2.5 py-1.5 text-xs rounded-xl"><i class="fas fa-clock"></i></button>
                                 <button onclick="deleteSheetRow('${log.id}')" class="delete-action-btn text-slate-500 p-1.5 text-xs"><i class="fas fa-trash-alt"></i></button>
                             </div>
@@ -750,7 +860,16 @@
 
             // Window level trigger bindings
             window.updateSheetStatus = async function(id, targetStateValue) {
-                if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) return;
+                if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
+                    // Locally update for demo mode
+                    const localLog = cloudRegistry.find(log => log.id === id);
+                    if (localLog) {
+                        localLog.status = targetStateValue;
+                        showToast('Approved! (Demo Local)', 'success');
+                        renderAdminDashboard();
+                    }
+                    return;
+                }
                 showLoader();
                 try {
                     await fetch(SCRIPT_URL, {
