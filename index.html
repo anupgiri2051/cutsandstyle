@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cuts & Style | Premium Barber Hub Baglung</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @supports(padding-bottom: env(safe-area-inset-bottom)) {
+            .mobile-bottom-bar { padding-bottom: calc(env(safe-area-inset-bottom) + 1rem); }
+        }
+    </style>
+</head>
+<body class="bg-[#0b0c0e] text-slate-100 min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950 antialiased">
+
+    <!-- Header -->
+    <header class="bg-[#111317]/90 backdrop-blur-md border-b border-slate-800/40 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer group" id="logo-home">
+                <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center text-slate-950 transition-transform group-hover:rotate-12 duration-300 shadow-xl shadow-amber-500/10">
+                    <i class="fas fa-scissors text-2xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-black tracking-tight bg-gradient-to-r from-amber-400 via-amber-200 to-white bg-clip-text text-transparent uppercase block">Cuts & Style</span>
+                    <span class="text-[11px] text-slate-400 block tracking-widest uppercase font-medium"><i class="fas fa-map-marker-alt text-amber-500 mr-1"></i> Baglung Bazar</span>
+                </div>
+            </div>
+            <button id="toggle-admin-btn" class="relative bg-gradient-to-b from-slate-800 to-slate-900 text-amber-400 text-xs font-bold px-5 py-3 rounded-xl border border-slate-700/50 shadow-md flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Barber Console</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="text-center space-y-3">
+            <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="text-xs text-slate-400 tracking-wider font-medium">Syncing with Google Database...</p>
+        </div>
+    </div>
+
+    <!-- CUSTOMER VIEW -->
+    <main id="customer-view" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-1 w-full">
+        <section class="mb-8 md:mb-12 rounded-3xl border border-slate-800/80 shadow-2xl relative overflow-hidden bg-gradient-to-r from-black via-slate-950/90 to-transparent">
+            <div class="absolute inset-0 z-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style="background-image: url('unnamed.webp');"></div>
+            <div class="absolute inset-0 z-0 bg-gradient-to-t from-[#0b0c0e] via-transparent to-amber-500/5"></div>
+            <div class="relative z-10 max-w-3xl p-6 md:p-14 text-left">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-4"><i class="fas fa-circle text-[6px] text-amber-400 animate-pulse mr-2"></i>Google Sheets Database Link Active</span>
+                <h1 class="text-3xl sm:text-6xl font-black text-white tracking-tight mb-4 leading-none">Luxury Grooming,<br>On Your Terms</h1>
+                <p class="text-slate-300 text-sm sm:text-lg font-light leading-relaxed max-w-xl">Step into Baglung's premier boutique grooming space. Book a session instantly and look out for authorization approvals.</p>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div class="lg:col-span-7 space-y-6">
+                <div class="bg-[#111317] p-5 sm:p-7 rounded-2xl border border-slate-800/80 shadow-md">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                        <h2 class="text-base sm:text-lg font-bold text-white flex items-center"><span class="w-7 h-7 bg-amber-500 text-slate-950 rounded-lg flex items-center justify-center text-xs font-black mr-3">1</span>Select Styling Lineup</h2>
+                        <div class="relative w-full sm:w-48">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                            <input type="text" id="service-search" placeholder="Filter services..." class="w-full pl-8 pr-3 py-1.5 bg-slate-950 rounded-lg border border-slate-800 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-3" id="services-grid">
+                        <label class="service-item group relative flex items-center justify-between p-4 bg-slate-900/30 hover:bg-slate-900/80 rounded-xl cursor-pointer transition-all duration-200 border border-slate-800/60 shadow-sm">
+                            <div class="flex items-center space-x-4">
+                                <input type="checkbox" value="150" data-name="Normal Haircut" class="service-checkbox appearance-none w-5 h-5 bg-[#0b0c0e] border border-slate-700 rounded-md checked:bg-amber-500 transition-all focus:ring-0 cursor-pointer">
+                                <div>
+                                    <span class="font-bold text-white block group-hover:text-amber-400 text-sm sm:text-base">Normal Haircut</span>
+                                    <span class="text-xs text-slate-400 font-light block mt-0.5">Classic precision clipper architectural line adjustment</span>
+                                </div>
+                            </div>
+                            <span class="text-amber-400 font-extrabold text-sm sm:text-base bg-slate-950/80 px-3 py-1 rounded-lg border border-slate-800">Rs. 150</span>
+                        </label>
+
+                        <label class="service-item group relative flex items-center justify-between p-4 bg-slate-900/30 hover:bg-slate-900/80 rounded-xl cursor-pointer transition-all duration-200 border border-slate-800/60 shadow-sm">
+                            <div class="flex items-center space-x-4">
+                                <input type="checkbox" value="100" data-name="Beard Trim & Shave" class="service-checkbox appearance-none w-5 h-5 bg-[#0b0c0e] border border-slate-700 rounded-md checked:bg-amber-500 transition-all focus:ring-0 cursor-pointer">
+                                <div>
+                                    <span class="font-bold text-white block group-hover:text-amber-400 text-sm sm:text-base">Beard Trim & Shave</span>
+                                    <span class="text-xs text-slate-400 font-light block mt-0.5">Hot towel lineup razor styling contour processing</span>
+                                </div>
+                            </div>
+                            <span class="text-amber-400 font-extrabold text-sm sm:text-base bg-slate-950/80 px-3 py-1 rounded-lg border border-slate-800">Rs. 100</span>
+                        </label>
+
+                        <label class="service-item group relative flex items-center justify-between p-4 bg-slate-900/30 hover:bg-slate-900/80 rounded-xl cursor-pointer transition-all duration-200 border border-slate-800/60 shadow-sm">
+                            <div class="flex items-center space-x-4">
+                                <input type="checkbox" value="400" data-name="Premium Hair Color" class="service-checkbox appearance-none w-5 h-5 bg-[#0b0c0e] border border-slate-700 rounded-md checked:bg-amber-500 transition-all focus:ring-0 cursor-pointer">
+                                <div>
+                                    <span class="font-bold text-white block group-hover:text-amber-400 text-sm sm:text-base">Premium Hair Color</span>
+                                    <span class="text-xs text-slate-400 font-light block mt-0.5">Deep dye tone lock pigmentation restoration</span>
+                                </div>
+                            </div>
+                            <span class="text-amber-400 font-extrabold text-sm sm:text-base bg-slate-950/80 px-3 py-1 rounded-lg border border-slate-800">Rs. 400</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-[#111317] p-5 sm:p-7 rounded-2xl border border-slate-800/80 shadow-md">
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center mb-4"><span class="w-7 h-7 bg-amber-500 text-slate-950 rounded-lg flex items-center justify-center text-xs font-black mr-3">2</span>Target Date & Time</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Appointment Day</label>
+                            <input type="date" id="appointment-date" class="w-full px-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm font-medium text-white focus:outline-none focus:border-amber-500 cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Target Clock Slot</label>
+                            <input type="time" id="appointment-time" class="w-full px-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm font-medium text-white focus:outline-none focus:border-amber-500 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 space-y-6">
+                <div class="bg-[#111317] p-5 sm:p-7 rounded-2xl border border-slate-800/80 shadow-md lg:sticky lg:top-28">
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center mb-4"><span class="w-7 h-7 bg-amber-500 text-slate-950 rounded-lg flex items-center justify-center text-xs font-black mr-3">3</span>Contact Coordinates</h2>
+                    <div class="space-y-4 mb-5">
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">First & Last Name</label>
+                            <input type="text" id="client-name" placeholder="E.g., Anil Shrestha" class="w-full px-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Mobile Phone Number</label>
+                            <input type="tel" id="client-phone" placeholder="98XXXXXXXX" class="w-full px-4 py-3.5 bg-slate-900 rounded-xl border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Custom Directives (Optional)</label>
+                            <textarea id="client-notes" rows="2" placeholder="Low skin fade, leave length on top..." class="w-full px-4 py-3 bg-slate-900 rounded-xl border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-500 resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 text-sm space-y-3">
+                        <h3 class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Live Cost Settlement</h3>
+                        <div class="space-y-2 border-b border-slate-800/80 pb-3" id="summary-services">
+                            <p class="text-slate-600 italic font-light text-xs">No styling adjustments picked yet.</p>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-slate-400 font-light">
+                            <span>Station Maintenance Fee</span>
+                            <span class="font-medium text-slate-200">Rs. 50</span>
+                        </div>
+                        <div class="text-xs text-slate-400 pt-1 flex items-center" id="summary-datetime">
+                            <i class="far fa-calendar-alt mr-2 text-slate-600"></i><span class="italic text-slate-600">Awaiting schedule dates...</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-800 hidden lg:block">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-slate-400 font-medium text-sm">Aggregated Fee total:</span>
+                            <span class="text-3xl font-black text-amber-400 tracking-tight" id="total-price-display">Rs. 50</span>
+                        </div>
+                        <button type="button" id="book-btn" class="w-full bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-bold py-4 rounded-xl shadow-lg shadow-amber-500/10 text-xs uppercase tracking-wide">Submit Seating Request</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Sticky Bar -->
+    <div class="lg:hidden bg-[#111317]/95 backdrop-blur-lg border-t border-slate-800 p-4 sticky bottom-0 z-40 mobile-bottom-bar" id="mobile-sticky-action-bar">
+        <div class="max-w-md mx-auto flex items-center justify-between gap-4">
+            <div class="text-left">
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Estimate</span>
+                <span class="text-2xl font-black text-amber-400 tracking-tight" id="mobile-price-display">Rs. 50</span>
+            </div>
+            <button type="button" id="mobile-book-btn" class="flex-1 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-bold py-3.5 px-4 rounded-xl text-center text-xs font-bold uppercase tracking-wider">Request Slot</button>
+        </div>
+    </div>
+
+    <!-- ADMIN CONSOLE MANAGEMENT COMPONENT -->
+    <main id="admin-view" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-1 w-full hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-5 mb-6 gap-4">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center"><span class="w-2.5 h-6 bg-amber-500 rounded-md inline-block mr-2.5"></span>Google Sheets Cloud Panel</h1>
+                <p class="text-xs text-slate-400 font-light mt-0.5">Live structural pipeline directly linked to your barber shop spreadsheet document.</p>
+            </div>
+            <button id="back-to-booking-btn" class="text-xs bg-slate-900 text-slate-300 font-bold px-4 py-3 rounded-xl border border-slate-800 flex items-center justify-center"><i class="fas fa-arrow-left mr-2"></i> Return to Client View</button>
+        </div>
+
+        <!-- Dashboard Statistics Monitoring -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="bg-[#111317] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                <div><span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Awaiting Review</span><span id="stat-pending" class="text-2xl font-black text-amber-400 block mt-1">0 Slots</span></div>
+                <div class="w-10 h-10 bg-amber-500/10 text-amber-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-hourglass-start"></i></div>
+            </div>
+            <div class="bg-[#111317] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                <div><span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Confirmed Seats</span><span id="stat-confirmed" class="text-2xl font-black text-emerald-400 block mt-1">0 Slots</span></div>
+                <div class="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="bg-[#111317] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                <div><span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Spreadsheet Revenue</span><span id="stat-revenue" class="text-2xl font-black text-indigo-400 block mt-1">Rs. 0</span></div>
+                <div class="w-10 h-10 bg-indigo-500/10 text-indigo-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-wallet"></i></div>
+            </div>
+        </div>
+
+        <!-- Sheet Log Display Elements -->
+        <div class="bg-[#111317] rounded-2xl border border-slate-800/80 overflow-hidden shadow-xl">
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-950/60 text-[11px] uppercase tracking-wider font-bold text-slate-400 border-b border-slate-800">
+                        <tr>
+                            <th class="px-6 py-4">Client Contact</th>
+                            <th class="px-6 py-4">Date/Time Map</th>
+                            <th class="px-6 py-4">Directives & Notes</th>
+                            <th class="px-6 py-4">Line/Fee</th>
+                            <th class="px-6 py-4">Status Monitor</th>
+                            <th class="px-6 py-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-desktop-table" class="divide-y divide-slate-800/60"></tbody>
+                </table>
+            </div>
+            <div id="admin-mobile-cards" class="md:hidden divide-y divide-slate-800 p-2 space-y-3 bg-slate-950/20"></div>
+            <div id="no-appointments" class="text-center py-16 text-slate-600 hidden">
+                <div class="w-16 h-16 bg-slate-950 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 text-slate-700 border border-slate-800"><i class="fas fa-cloud-download-alt"></i></div>
+                <span class="font-medium text-slate-400 block text-sm">Database Is Clean</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-[#111317] border border-slate-800 max-w-sm w-full rounded-2xl p-6 text-center">
+            <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl mx-auto mb-3"><i class="fas fa-check"></i></div>
+            <h3 class="text-lg font-bold text-white tracking-tight">Saved to Google Sheet!</h3>
+            <p class="text-slate-400 text-xs font-light mt-1.5 leading-relaxed">Your reservation setup parameters have been successfully appended into our spreadsheet database matrices.</p>
+            <button type="button" id="close-modal-btn" class="mt-5 w-full bg-slate-800 text-white text-xs font-semibold py-3 rounded-xl">Dismiss Ticket</button>
+        </div>
+    </div>
+
+    <!-- Shift Adjust Drawer Modal -->
+    <div id="reschedule-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-[#111317] border border-slate-800 max-w-md w-full rounded-2xl p-5 sm:p-6 shadow-2xl">
+            <h3 class="text-base sm:text-lg font-bold text-white mb-4 flex items-center"><i class="fas fa-clock mr-2 text-amber-500"></i>Override Sheet Coordinates</h3>
+            <input type="hidden" id="target-booking-id">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">New Date</label>
+                    <input type="date" id="new-barber-date" class="w-full p-3 bg-slate-950 rounded-xl border border-slate-800 text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">New Hour</label>
+                    <input type="time" id="new-barber-time" class="w-full p-3 bg-slate-950 rounded-xl border border-slate-800 text-sm text-white">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" id="cancel-reschedule-btn" class="bg-slate-800 text-slate-300 py-2.5 rounded-xl text-xs">Abort</button>
+                <button type="button" id="save-reschedule-btn" class="bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs">Update Sheet</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-slate-950 border-t border-slate-900/40 py-4 text-center text-[11px] text-slate-600 font-light">&copy; 2026 Cuts & Style · Baglung Bazar Database App.</footer>
+
+    <script>
+        // --- IMPORTANT CONFIGURATION INTERSECTION ---
+        // REPLACE THE STRING BELOW WITH YOUR LIVE DEPLOYED GOOGLE APPS SCRIPT URL!
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzH0UrgjuAdetgIaaPWsjlx-i5FM6vRLiy9uad5uCx2ten5nGyvZ-DUVU3be0PjdRp1TA/exec';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const customerView = document.getElementById('customer-view');
+            const adminView = document.getElementById('admin-view');
+            const toggleAdminBtn = document.getElementById('toggle-admin-btn');
+            const backToBookingBtn = document.getElementById('back-to-booking-btn');
+            const logoHome = document.getElementById('logo-home');
+            const mobileStickyActionBar = document.getElementById('mobile-sticky-action-bar');
+            const loadingOverlay = document.getElementById('loading-overlay');
+
+            const checkboxes = document.querySelectorAll('.service-checkbox');
+            const serviceSearch = document.getElementById('service-search');
+            const dateInput = document.getElementById('appointment-date');
+            const timeInput = document.getElementById('appointment-time');
+            const nameInput = document.getElementById('client-name');
+            const phoneInput = document.getElementById('client-phone');
+            const notesInput = document.getElementById('client-notes');
+            
+            const totalDisplay = document.getElementById('total-price-display');
+            const mobilePriceDisplay = document.getElementById('mobile-price-display');
+            const summaryServices = document.getElementById('summary-services');
+            const summaryDatetime = document.getElementById('summary-datetime');
+            
+            const bookBtn = document.getElementById('book-btn');
+            const mobileBookBtn = document.getElementById('mobile-book-btn');
+            const successModal = document.getElementById('success-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const rescheduleModal = document.getElementById('reschedule-modal');
+            const saveRescheduleBtn = document.getElementById('save-reschedule-btn');
+            const cancelRescheduleBtn = document.getElementById('cancel-reschedule-btn');
+            
+            let currentTotal = 50;
+            let cloudCacheMemory = [];
+
+            function showLoader() { loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); }
+            function hideLoader() { loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex'); }
+
+            // --- NAVIGATION CONTROLLERS ---
+            toggleAdminBtn.addEventListener('click', () => {
+                if(adminView.classList.contains('hidden')) { 
+                    customerView.classList.add('hidden');
+                    mobileStickyActionBar.classList.add('translate-y-full', 'hidden');
+                    adminView.classList.remove('hidden');
+                    syncPullFromGoogleSheets();
+                } else { 
+                    routeToClientView(); 
+                }
+            });
+            backToBookingBtn.addEventListener('click', routeToClientView);
+            logoHome.addEventListener('click', routeToClientView);
+
+            function routeToClientView() {
+                adminView.classList.add('hidden');
+                customerView.classList.remove('hidden');
+                mobileStickyActionBar.classList.remove('translate-y-full', 'hidden');
+            }
+
+            // --- CLIENT INPUT ENGINE ---
+            serviceSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.service-item').forEach(item => {
+                    item.classList.toggle('hidden', !item.innerText.toLowerCase().includes(query));
+                });
+            });
+
+            function recalculateBill() {
+                currentTotal = 50;
+                let listHTML = '';
+                checkboxes.forEach(box => {
+                    if (box.checked) {
+                        currentTotal += parseInt(box.value);
+                        listHTML += `<div class="flex justify-between items-center text-slate-300 text-xs"><span>• ${box.getAttribute('data-name')}</span><span class="text-amber-400 font-semibold">Rs. ${box.value}</span></div>`;
+                    }
+                });
+                totalDisplay.innerText = `Rs. ${currentTotal}`;
+                mobilePriceDisplay.innerText = `Rs. ${currentTotal}`;
+                summaryServices.innerHTML = listHTML || `<p class="text-slate-600 italic font-light text-xs">No styling adjustments picked yet.</p>`;
+            }
+            checkboxes.forEach(box => box.addEventListener('change', recalculateBill));
+
+            dateInput.addEventListener('input', () => {
+                summaryDatetime.innerHTML = dateInput.value && timeInput.value ? `<i class="far fa-calendar-check mr-2 text-amber-500"></i><span class="text-slate-300">${dateInput.value} @ ${timeInput.value}</span>` : `<i class="far fa-calendar-alt mr-2 text-slate-600"></i><span class="italic text-slate-600">Awaiting scheduling...</span>`;
+            });
+            timeInput.addEventListener('input', () => dateInput.dispatchEvent(new Event('input')));
+
+            // --- GOOGLE SHEETS ASYNC AJAX CONTROLLERS ---
+            async function syncPullFromGoogleSheets() {
+                if(SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) return;
+                showLoader();
+                try {
+                    const response = await fetch(SCRIPT_URL);
+                    cloudCacheMemory = await response.getJson() || [];
+                } catch (err) {
+                    console.error("Fetch alignment tracking fault:", err);
+                }
+                hideLoader();
+                renderAdminDashboard();
+            }
+
+            async function transmitPushToGoogleSheets(payload) {
+                if(SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
+                    alert('System deployment block: Paste your valid Google Web App Deployment execution script endpoint link token inside the codebase frame line 198 to link your live sheets data.');
+                    return;
+                }
+                showLoader();
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors', // standard framework integration with cross-origin Google apps
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    successModal.classList.remove('hidden');
+                    successModal.classList.add('flex');
+                } catch(err) {
+                    alert('Database sync connection timed out.');
+                }
+                hideLoader();
+            }
+
+            // --- CORE FORM TRANSACTION PROCESSING ---
+            function runBookingSubmission() {
+                const name = nameInput.value.trim();
+                const phone = phoneInput.value.trim();
+                const notes = notesInput.value.trim() || 'None.';
+                
+                if (currentTotal === 50 || !dateInput.value || !timeInput.value || !name || !phone) {
+                    alert('Please finalize and complete all coordinate parameters before saving files.');
+                    return;
+                }
+
+                let activeTreatments = [];
+                checkboxes.forEach(box => { if(box.checked) activeTreatments.push(box.getAttribute('data-name')); });
+
+                transmitPushToGoogleSheets({
+                    action: 'create',
+                    id: 'TX-' + Date.now(),
+                    name: name,
+                    phone: phone,
+                    date: dateInput.value,
+                    time: timeInput.value,
+                    notes: notes,
+                    treatments: activeTreatments.join(', '),
+                    bill: currentTotal,
+                    status: 'Pending Verification'
+                });
+            }
+            bookBtn.addEventListener('click', runBookingSubmission);
+            mobileBookBtn.addEventListener('click', runBookingSubmission);
+
+            closeModalBtn.addEventListener('click', () => {
+                successModal.classList.add('hidden');
+                nameInput.value = ''; phoneInput.value = ''; dateInput.value = ''; timeInput.value = ''; notesInput.value = '';
+                checkboxes.forEach(box => box.checked = false);
+                recalculateBill();
+                dateInput.dispatchEvent(new Event('input'));
+            });
+
+            // --- ADMIN METRIC DASHBOARD PARSERS ---
+            function renderAdminDashboard() {
+                const deskBody = document.getElementById('admin-desktop-table');
+                const mobStack = document.getElementById('admin-mobile-cards');
+                const emptyState = document.getElementById('no-appointments');
+
+                let pendingCount = 0, confirmedCount = 0, totalRev = 0;
+                deskBody.innerHTML = ''; mobStack.innerHTML = '';
+
+                if(cloudCacheMemory.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+                emptyState.classList.add('hidden');
+
+                cloudCacheMemory.forEach(log => {
+                    if (log.status === 'Pending Verification') pendingCount++;
+                    else confirmedCount++;
+                    totalRev += parseInt(log.bill || 0);
+
+                    let badgeColor = log.status === 'Confirmed Chair Slot' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-yellow-500/10 text-yellow-400';
+                    const badge = `<span class="px-2 py-0.5 text-[10px] uppercase font-bold border border-slate-700 rounded ${badgeColor}">${log.status}</span>`;
+
+                    // Desktop row building
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-900 border-b border-slate-800 text-xs";
+                    tr.innerHTML = `
+                        <td class="px-6 py-4"><span class="font-bold text-white block">${log.name}</span><span class="text-slate-500">${log.phone}</span></td>
+                        <td class="px-6 py-4"><span class="text-slate-300 block">${log.date}</span><span class="text-amber-400">${log.time}</span></td>
+                        <td class="px-6 py-4"><p class="text-slate-400 italic max-w-[140px] truncate">${log.notes}</p></td>
+                        <td class="px-6 py-4"><span class="text-slate-400 block max-w-[140px] truncate">${log.treatments}</span><span class="text-emerald-400 font-bold">Rs. ${log.bill}</span></td>
+                        <td class="px-6 py-4">${badge}</td>
+                        <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
+                            <button onclick="updateSheetStatus('${log.id}', 'Confirmed Chair Slot')" class="bg-emerald-500 text-slate-950 font-bold px-2 py-1 rounded">Approve</button>
+                            <button onclick="openRescheduleWindow('${log.id}','${log.date}','${log.time}')" class="bg-slate-800 text-amber-400 px-2 py-1 rounded">Reschedule</button>
+                            <button onclick="deleteSheetRow('${log.id}')" class="text-slate-600 hover:text-red-400 px-1"><i class="fas fa-trash-alt"></i></button>
+                        </td>
+                    `;
+                    deskBody.appendChild(tr);
+
+                    // Mobile card setup
+                    const card = document.createElement('div');
+                    card.className = "p-4 bg-slate-900/60 border border-slate-800 rounded-xl space-y-2 text-xs";
+                    card.innerHTML = `
+                        <div class="flex justify-between"><div><span class="font-bold text-white block">${log.name}</span><span class="text-slate-500">${log.phone}</span></div> ${badge}</div>
+                        <div class="bg-slate-950 p-2 rounded border border-slate-800 flex justify-between"><span>Date: ${log.date}</span><span class="text-amber-400">Time: ${log.time}</span></div>
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+                            <span class="font-bold text-emerald-400">Rs. ${log.bill}</span>
+                            <div class="space-x-1">
+                                <button onclick="updateSheetStatus('${log.id}', 'Confirmed Chair Slot')" class="bg-emerald-500 text-slate-950 font-bold px-2 py-1 rounded">Approve</button>
+                                <button onclick="openRescheduleWindow('${log.id}','${log.date}','${log.time}')" class="bg-slate-800 text-amber-400 px-2 py-1 rounded"><i class="fas fa-clock"></i></button>
+                                <button onclick="deleteSheetRow('${log.id}')" class="text-slate-500 px-1"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    mobStack.appendChild(card);
+                });
+
+                document.getElementById('stat-pending').innerText = `${pendingCount} Slots`;
+                document.getElementById('stat-confirmed').innerText = `${confirmedCount} Slots`;
+                document.getElementById('stat-revenue').innerText = `Rs. ${totalRev}`;
+            }
+
+            // Window level actions mapping
+            window.updateSheetStatus = async function(id, status) {
+                showLoader();
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStatus', id: id, status: status }) });
+                syncPullFromGoogleSheets();
+            };
+
+            window.deleteSheetRow = async function(id) {
+                if(!confirm("Remove from spreadsheet?")) return;
+                showLoader();
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: id }) });
+                syncPullFromGoogleSheets();
+            };
+
+            window.openRescheduleWindow = function(id, date, time) {
+                document.getElementById('target-booking-id').value = id;
+                document.getElementById('new-barber-date').value = date;
+                document.getElementById('new-barber-time').value = time;
+                rescheduleModal.classList.remove('hidden');
+                rescheduleModal.classList.add('flex');
+            };
+
+            cancelRescheduleBtn.addEventListener('click', () => rescheduleModal.classList.add('hidden'));
+            saveRescheduleBtn.addEventListener('click', async () => {
+                const id = document.getElementById('target-booking-id').value;
+                const d = document.getElementById('new-barber-date').value;
+                const t = document.getElementById('new-barber-time').value;
+                rescheduleModal.classList.add('hidden');
+                showLoader();
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'reschedule', id: id, date: d, time: t, status: `Shifted: ${d} @ ${t}` }) });
+                syncPullFromGoogleSheets();
+            });
+        });
+    </script>
+</body>
+</html>
