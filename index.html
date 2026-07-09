@@ -63,9 +63,9 @@
             <div class="absolute inset-0 z-0 bg-gradient-to-t from-[#0b0c0e] via-transparent to-amber-500/5"></div>
             
             <div class="relative z-10 max-w-3xl p-6 md:p-14 text-left">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-4 backdrop-blur-sm"><i class="fas fa-circle text-[6px] text-amber-400 animate-pulse mr-2"></i>Linked to Google Sheet</span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-4 backdrop-blur-sm"><i class="fas fa-circle text-[6px] text-amber-400 animate-pulse mr-2"></i>Premium Live Cloud Queue</span>
                 <h1 class="text-3xl sm:text-6xl font-black text-white tracking-tight mb-4 leading-none">Luxury Grooming,<br class="hidden sm:block">On Your Terms</h1>
-                <p class="text-slate-300 text-sm sm:text-lg font-light leading-relaxed max-w-xl">Step into Baglung's premier boutique grooming space. Select your styling preferences, pick your custom time, and submit instantly to our sheets database.</p>
+                <p class="text-slate-300 text-sm sm:text-lg font-light leading-relaxed max-w-xl">Step into Baglung's premier boutique grooming space. Select your styling preferences, pick your custom time, and submit instantly to reserve your priority slot in our queuing system.</p>
             </div>
         </section>
 
@@ -301,7 +301,7 @@
             <div id="no-appointments" class="text-center py-16 text-slate-600 hidden">
                 <div class="w-16 h-16 bg-slate-950 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 text-slate-700 border border-slate-800/60"><i class="fas fa-cloud-download-alt"></i></div>
                 <span class="font-medium text-slate-400 block text-sm">No Active Booking Inquiries</span>
-                <span class="text-xs font-light text-slate-600 max-w-xs mx-auto block mt-1">Your Google Sheets connection represents a clean database ledger.</span>
+                <span class="text-xs font-light text-slate-600 max-w-xs mx-auto block mt-1">Your reservation system is fully updated with the live queue ledger.</span>
             </div>
         </div>
     </main>
@@ -313,7 +313,7 @@
                 <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center"><i class="fas fa-lock text-base"></i></div>
                 <h3 class="text-lg font-bold text-white tracking-tight">Console Verification</h3>
             </div>
-            <p class="text-slate-400 text-xs font-light mb-5 leading-relaxed">Spreadsheet and scheduling queue parameters are locked. Input your shop code below to authorize terminal entry.</p>
+            <p class="text-slate-400 text-xs font-light mb-5 leading-relaxed">Terminal parameters and priority scheduling structures are locked. Input your shop code below to authorize entry.</p>
             
             <div class="mb-5">
                 <label class="block text-[10px] font-bold uppercase text-slate-500 tracking-wider mb-1.5">Access Password</label>
@@ -391,7 +391,7 @@
                 <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center"><i class="fas fa-clock"></i></div>
                 <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">Override & Assign Session Slot</h3>
             </div>
-            <p class="text-xs text-slate-400 font-light mb-4 leading-relaxed">Input alternate schedule dimensions to update this client file in the Google Sheet.</p>
+            <p class="text-xs text-slate-400 font-light mb-4 leading-relaxed">Input alternate schedule dimensions to update this active reservation entry on the master system.</p>
             
             <input type="hidden" id="target-booking-id">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
@@ -420,7 +420,7 @@
     <script>
         // --- 🔗 GOOGLE APPS SCRIPT WEB APP INTEGRATION LINK ---
         // PASTE YOUR GENERATED GOOGLE SCRIPT WEB APP URL INSIDE THE SINGLE QUOTES BELOW:
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxV0KdAl4owC9O59d7eH1w5V450sNOJ_tb28F2_I5GdcQ6a5rYM5DmBOB8PMQl47QJ9zg/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzakvNc3e45Zi5Godstg95dQxo3LEL2SDXFTyMYtShOmxBy2K0Ze5LzhyJPF8J3wfP2Hw/exec';
 
         document.addEventListener('DOMContentLoaded', () => {
             const customerView = document.getElementById('customer-view');
@@ -666,7 +666,7 @@
             // --- GOOGLE SHEETS ASYNC AJAX CONTROLLERS ---
             async function syncPullFromGoogleSheets() {
                 if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
-                    showToast('Link Google Sheet first! Set script URL on line 351', 'error');
+                    showToast('Live Cloud database link not established yet. Configure SCRIPT_URL parameters.', 'error');
                     return;
                 }
                 showLoader();
@@ -885,7 +885,7 @@
             };
 
             window.deleteSheetRow = async function(id) {
-                const confirmed = await runConfirmAlert("Wipe this reservation record from your Google Sheet?");
+                const confirmed = await runConfirmAlert("Wipe this client profile and cancel their session slot?");
                 if(!confirmed) return;
                 
                 showLoader();
@@ -938,7 +938,7 @@
                     showToast('Sheet timeline updated!', 'success');
                     await syncPullFromGoogleSheets();
                 } catch(err) {
-                    showToast('Google Sheet connection lost.', 'error');
+                    showToast('Cloud database synchronization lost.', 'error');
                 }
                 hideLoader();
             });
@@ -947,7 +947,7 @@
             if (!SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
                 syncPullFromGoogleSheets();
             } else {
-                showToast('Welcome to Cuts & Style! Add Sheet URL on line 286 to activate.', 'info');
+                showToast('Welcome to Cuts & Style! Add database endpoint connection parameters to SCRIPT_URL to activate.', 'info');
             }
         });
     </script>
