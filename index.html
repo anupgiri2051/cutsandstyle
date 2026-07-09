@@ -251,7 +251,7 @@
         </div>
 
         <!-- Metrics Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div class="bg-[#111317] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
                 <div>
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Awaiting Verification</span>
@@ -268,10 +268,17 @@
             </div>
             <div class="bg-[#111317] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Projected Revenue Matrix</span>
-                    <span id="stat-revenue" class="text-2xl font-black text-indigo-400 block mt-1">Rs. 0</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">For Owner Review</span>
+                    <span id="stat-completed" class="text-2xl font-black text-indigo-400 block mt-1">0 Slots</span>
                 </div>
-                <div class="w-10 h-10 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-wallet"></i></div>
+                <div class="w-10 h-10 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-clipboard-check"></i></div>
+            </div>
+            <div class="bg-[#111317] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Projected Revenue Matrix</span>
+                    <span id="stat-revenue" class="text-2xl font-black text-emerald-500 block mt-1">Rs. 0</span>
+                </div>
+                <div class="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-wallet"></i></div>
             </div>
         </div>
 
@@ -950,6 +957,210 @@
                 showToast('Welcome to Cuts & Style! Add database endpoint connection parameters to SCRIPT_URL to activate.', 'info');
             }
         });
+
+        function renderAdminDashboard() {
+            const deskBody = document.getElementById('admin-desktop-table');
+            const mobStack = document.getElementById('admin-mobile-cards');
+            const emptyState = document.getElementById('no-appointments');
+
+            let pendingCount = 0, confirmedCount = 0, completedCount = 0, projectedRevenue = 0;
+            deskBody.innerHTML = '';
+            mobStack.innerHTML = '';
+
+            if(cloudRegistry.length === 0) {
+                emptyState.classList.remove('hidden');
+                document.getElementById('stat-pending').innerText = '0 Slots';
+                document.getElementById('stat-confirmed').innerText = '0 Slots';
+                document.getElementById('stat-completed').innerText = '0 Slots';
+                document.getElementById('stat-revenue').innerText = 'Rs. 0';
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            cloudRegistry.forEach(log => {
+                let logStatus = log.status;
+                let badgeStyles = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+                let actionButtonsHTML = "";
+                let mobileActionButtonsHTML = "";
+                
+                // Classify slot status
+                if (logStatus === 'Confirmed Chair Slot' || logStatus === 'Approved') {
+                    logStatus = 'Approved';
+                    badgeStyles = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                    confirmedCount++;
+                    
+                    // Barber can click complete once hair is styled
+                    actionButtonsHTML = `
+                        <button onclick="updateSheetStatus('${log.id}', 'Completed (For Review)')" class="complete-action-btn bg-indigo-500 hover:bg-indigo-400 text-white font-bold px-3 py-1.5 text-xs rounded-xl shadow-sm transition flex items-center inline-flex gap-1">
+                            <i class="fas fa-check-double"></i> Complete
+                        </button>
+                    `;
+                    mobileActionButtonsHTML = `
+                        <button onclick="updateSheetStatus('${log.id}', 'Completed (For Review)')" class="complete-action-btn bg-indigo-500 text-white font-bold px-2.5 py-1.5 text-xs rounded-xl">Complete</button>
+                    `;
+                } else if (logStatus === 'Completed (For Review)' || logStatus === 'Completed') {
+                    logStatus = 'For Review';
+                    badgeStyles = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+                    completedCount++;
+                    
+                    // Owner can click verify payment to close out & finalize
+                    actionButtonsHTML = `
+                        <button onclick="updateSheetStatus('${log.id}', 'Verified & Paid')" class="verify-action-btn bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 text-xs rounded-xl shadow-sm transition flex items-center inline-flex gap-1">
+                            <i class="fas fa-receipt"></i> Verify Payment
+                        </button>
+                    `;
+                    mobileActionButtonsHTML = `
+                        <button onclick="updateSheetStatus('${log.id}', 'Verified & Paid')" class="verify-action-btn bg-emerald-500 text-slate-950 font-bold px-2.5 py-1.5 text-xs rounded-xl">Verify</button>
+                    `;
+                } else if (logStatus === 'Verified & Paid') {
+                    badgeStyles = "bg-slate-500/10 text-slate-400 border-slate-500/20";
+                    // Final state, no further adjustments needed
+                    actionButtonsHTML = `
+                        <span class="text-xs text-slate-500 font-medium inline-flex items-center gap-1"><i class="fas fa-check-circle text-emerald-500"></i> Settled</span>
+                    `;
+                    mobileActionButtonsHTML = `
+                        <span class="text-xs text-slate-500 font-medium inline-flex items-center gap-1"><i class="fas fa-check-circle text-emerald-500"></i> Settled</span>
+                    `;
+                } else {
+                    // Pending / other statuses
+                    badgeStyles = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+                    pendingCount++;
+                    
+                    actionButtonsHTML = `
+                        <button onclick="updateSheetStatus('${log.id}', 'Approved')" class="approve-action-btn bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 text-xs rounded-xl shadow-sm transition">Approve</button>
+                    `;
+                    mobileActionButtonsHTML = `
+                        <button onclick="updateSheetStatus('${log.id}', 'Approved')" class="approve-action-btn bg-emerald-500 text-slate-950 font-bold px-2.5 py-1.5 text-xs rounded-xl">Approve</button>
+                    `;
+                }
+                
+                projectedRevenue += parseInt(log.bill || 0);
+
+                if (logStatus.startsWith('Alternate Shift') || logStatus.startsWith('Shifted')) {
+                    badgeStyles = "bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
+                }
+
+                const badgeElement = `<span class="px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase rounded-md border ${badgeStyles}">${logStatus}</span>`;
+
+                // 1. Desktop Render Row
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-850/40 transition-colors border-b border-slate-800/40 text-xs sm:text-sm";
+                row.innerHTML = `
+                    <td class="px-6 py-4">
+                        <span class="font-bold text-white block">${log.name}</span>
+                        <span class="text-xs text-slate-500 block font-medium mt-0.5"><i class="fas fa-phone-alt text-slate-600 mr-1"></i>${log.phone}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-slate-300 font-semibold block">${log.date}</span>
+                        <span class="text-xs text-amber-400 font-bold block mt-0.5"><i class="far fa-clock mr-1"></i>${log.time}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="text-xs text-slate-400 italic max-w-[160px] truncate" title="${log.notes}">${log.notes}</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-xs text-slate-400 block max-w-[150px] truncate" title="${log.treatments}">${log.treatments}</span>
+                        <span class="text-xs font-bold text-emerald-400 block mt-0.5">Rs. ${log.bill}</span>
+                    </td>
+                    <td class="px-6 py-4">${badgeElement}</td>
+                    <td class="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
+                        ${actionButtonsHTML}
+                        <button onclick="openOverrideWindow('${log.id}','${log.date}','${log.time}')" class="modify-action-btn bg-slate-800 hover:bg-slate-750 border border-slate-700 text-amber-400 px-3 py-1.5 text-xs rounded-xl transition">Change Time</button>
+                        <button onclick="deleteSheetRow('${log.id}')" class="delete-action-btn text-slate-600 hover:text-red-400 p-2 transition"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                `;
+                deskBody.appendChild(row);
+
+                // 2. Mobile Render Card
+                const card = document.createElement('div');
+                card.className = "p-4 bg-slate-900/60 border border-slate-800/80 rounded-xl space-y-3 shadow-sm text-xs";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-sm font-bold text-white block">${log.name}</span>
+                            <a href="tel:${log.phone}" class="text-xs text-amber-400 font-medium inline-flex items-center mt-0.5 bg-amber-500/5 px-2 py-0.5 rounded border border-amber-500/10"><i class="fas fa-phone-alt mr-1.5 text-[10px]"></i>${log.phone}</a>
+                        </div>
+                        ${badgeElement}
+                    </div>
+                    <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800 text-[11px] space-y-1">
+                        <div class="flex justify-between"><span>Date: ${log.date}</span><span class="text-amber-400 font-bold">Time: ${log.time}</span></div>
+                        <div class="text-slate-400 text-[10px] truncate"><span class="text-slate-500">Note:</span> ${log.notes}</div>
+                    </div>
+                    <div class="text-xs"><span class="text-slate-500 font-light block">Services:</span><span class="text-slate-300 font-medium block truncate">${log.treatments}</span></div>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                        <span class="text-xs font-bold text-emerald-400">Total: Rs. ${log.bill}</span>
+                        <div class="flex items-center space-x-1.5">
+                            ${mobileActionButtonsHTML}
+                            <button onclick="openOverrideWindow('${log.id}','${log.date}','${log.time}')" class="modify-action-btn bg-slate-800 border border-slate-700 text-amber-400 px-2.5 py-1.5 text-xs rounded-xl"><i class="fas fa-clock"></i></button>
+                            <button onclick="deleteSheetRow('${log.id}')" class="delete-action-btn text-slate-500 p-1.5 text-xs"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                `;
+                mobStack.appendChild(card);
+            });
+
+            document.getElementById('stat-pending').innerText = `${pendingCount} Slots`;
+            document.getElementById('stat-confirmed').innerText = `${confirmedCount} Slots`;
+            document.getElementById('stat-completed').innerText = `${completedCount} Slots`;
+            document.getElementById('stat-revenue').innerText = `Rs. ${projectedRevenue}`;
+        }
+
+        // Window level trigger bindings
+        window.updateSheetStatus = async function(id, targetStateValue) {
+            if (SCRIPT_URL.includes('YOUR_GOOGLE_SCRIPT')) {
+                // Locally update for demo mode
+                const localLog = cloudRegistry.find(log => log.id === id);
+                if (localLog) {
+                    localLog.status = targetStateValue;
+                    let msg = 'Approved!';
+                    if (targetStateValue === 'Completed (For Review)') msg = 'Marked Complete! Sent for Owner Review.';
+                    if (targetStateValue === 'Verified & Paid') msg = 'Payment Verified & Settled!';
+                    showToast(`${msg} (Demo Local)`, 'success');
+                    renderAdminDashboard();
+                }
+                return;
+            }
+            showLoader();
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'updateStatus', id: id, status: targetStateValue })
+                });
+                let msg = 'Seating approved!';
+                if (targetStateValue === 'Completed (For Review)') msg = 'Marked Complete! Sent for Owner Review.';
+                if (targetStateValue === 'Verified & Paid') msg = 'Payment Verified & Settled!';
+                showToast(msg, 'success');
+                await syncPullFromGoogleSheets();
+            } catch(err) {
+                showToast('Sync lost with spreadsheet.', 'error');
+            }
+            hideLoader();
+        };
+
+        window.deleteSheetRow = async function(id) {
+            const confirmed = await runConfirmAlert("Wipe this client profile and cancel their session slot?");
+            if(!confirmed) return;
+            
+            showLoader();
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'delete', id: id })
+                });
+                showToast('Record deleted.', 'success');
+                await syncPullFromGoogleSheets();
+            } catch(err) {
+                showToast('Action processing timed out.', 'error');
+            }
+            hideLoader();
+        };
+
+        window.openOverrideWindow = function(id, date, time) {
+            document.getElementById('target-booking-id').value = id;
+            document.getElementById('new-barber-date').value = date;
+            document.getElementById('new-barber-time').value = time;
+            rescheduleModal.classList.remove('hidden');
+            rescheduleModal.classList.add('flex');
+        };
     </script>
 </body>
 </html>
