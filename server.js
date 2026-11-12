@@ -3,31 +3,42 @@ const path = require('path');
 const crypto = require('crypto');
 const db = require('./db');
 
-db.load();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+const STATUSES = ['pending', 'confirmed', 'completed', 'cancelled', 'no-show'];
 
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '100kb' }));
+// On your computer Express serves the website. On Vercel the "public" folder is served automatically.
 app.use(express.static(path.join(__dirname, 'public')));
-const fs = require('fs');
-fs.mkdirSync(db.UPLOAD_DIR, { recursive: true });
 app.use('/uploads', express.static(db.UPLOAD_DIR, { maxAge: '7d' }));
+app.get('/admin', (req, res) => res.redirect('/admin/'));
+
+// Load the latest data before every API request.
+app.use('/api', async (req, res, next) => { await db.load(); next(); });
 
 // ---------- helpers ----------
 const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 const toTime = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-const pad = (n) => String(n).padStart(2, '0');
-const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
-const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
-const isDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s + 'T00:00:00'));
+const isDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s + 'T00:00:00Z'));
 const isTime = (s) => /^([01]\d|2[0-3]):[0-5]\d$/.test(s);
 const str = (v, max = 500) => String(v ?? '').trim().slice(0, max);
 const bad = (res, msg, code = 400) => res.status(code).json({ error: msg });
+const validZone = (tz) => { try { new Intl.DateTimeFormat('en', { timeZone: tz }); return true; } catch { return false; } };
+
+// "Now" in the shop's own time zone (servers like Vercel run on UTC).
+function shopNow() {
+  const tz = db.get().settings.timezone;
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+    timeZone: validZone(tz) ? tz : 'Asia/Kathmandu', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date()).map((p) => [p.type, p.value]));
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, minutes: Number(parts.hour) * 60 + Number(parts.minute) };
+}
+const todayStr = () => shopNow().date;
 
 function dayHours(date) {
-  const key = DAYS[new Date(date + 'T00:00:00').getDay()];
-  return db.get().settings.hours[key];
+  return db.get().settings.hours[DAYS[new Date(date + 'T00:00:00Z').getUTCDay()]];
 }
 
 function barberBusy(barberId, date, start, duration, ignoreId) {
@@ -36,14 +47,15 @@ function barberBusy(barberId, date, start, duration, ignoreId) {
     toMin(a.time) < start + duration && start < toMin(a.time) + a.duration);
 }
 
-// Returns list of {time, barberIds[]} free slots for a date/service/(optional) barber
+// Free slots for a date/service/(optional) barber: [{ time, barberIds[] }]
 function availability(date, service, barberId) {
   const h = dayHours(date);
   if (!h || h.closed) return [];
   const step = Number(db.get().settings.slotMinutes) || 30;
   const barbers = db.get().barbers.filter((b) => b.active && (!barberId || b.id === barberId));
+  const now = shopNow();
+  const earliest = date === now.date ? now.minutes + 15 : -1;
   const slots = [];
-  const earliest = date === todayStr() ? nowMin() + 15 : -1;
   for (let t = toMin(h.open); t + service.duration <= toMin(h.close); t += step) {
     if (t < earliest) continue;
     const free = barbers.filter((b) => !barberBusy(b.id, date, t, service.duration)).map((b) => b.id);
@@ -52,25 +64,26 @@ function availability(date, service, barberId) {
   return slots;
 }
 
-function publicSettings() {
-  const { settings } = db.get();
-  return settings;
-}
+const photoUrl = (g) => g.url || '/uploads/' + g.file;
 
-// ---------- auth (in-memory sessions, httpOnly cookie) ----------
-const sessions = new Map(); // token -> { expires }
+// ---------- auth (signed cookie, works on Vercel too) ----------
 const SESSION_MS = 8 * 60 * 60 * 1000;
-const loginAttempts = new Map(); // ip -> { count, until }
+const loginAttempts = new Map(); // ip -> { count, until } (best effort)
 
-function getToken(req) {
-  const m = /(?:^|;\s*)cs_session=([a-f0-9]+)/.exec(req.headers.cookie || '');
-  return m && m[1];
+function sign(expires) {
+  const d = db.get();
+  // Including the password hash means changing the password signs everyone out.
+  return crypto.createHmac('sha256', d.sessionSecret).update(`${expires}.${d.admin.password}`).digest('hex');
+}
+function cookie(req, value, maxAge) {
+  const secure = req.secure ? '; Secure' : '';
+  return `cs_session=${value}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${maxAge}${secure}`;
 }
 function requireAuth(req, res, next) {
-  const token = getToken(req);
-  const s = token && sessions.get(token);
-  if (!s || s.expires < Date.now()) { if (token) sessions.delete(token); return bad(res, 'Not logged in', 401); }
-  s.expires = Date.now() + SESSION_MS;
+  const m = /(?:^|;\s*)cs_session=(\d+)\.([a-f0-9]{64})/.exec(req.headers.cookie || '');
+  if (!m || Number(m[1]) < Date.now()) return bad(res, 'Not logged in', 401);
+  const expected = Buffer.from(sign(m[1]), 'hex');
+  if (!crypto.timingSafeEqual(expected, Buffer.from(m[2], 'hex'))) return bad(res, 'Not logged in', 401);
   next();
 }
 
@@ -87,15 +100,13 @@ app.post('/api/admin/login', (req, res) => {
     return bad(res, 'Invalid username or password', 401);
   }
   loginAttempts.delete(ip);
-  const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, { expires: Date.now() + SESSION_MS });
-  res.setHeader('Set-Cookie', `cs_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_MS / 1000}`);
+  const expires = Date.now() + SESSION_MS;
+  res.setHeader('Set-Cookie', cookie(req, `${expires}.${sign(expires)}`, SESSION_MS / 1000));
   res.json({ ok: true, username: admin.username });
 });
 
 app.post('/api/admin/logout', (req, res) => {
-  sessions.delete(getToken(req));
-  res.setHeader('Set-Cookie', 'cs_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
+  res.setHeader('Set-Cookie', cookie(req, '', 0));
   res.json({ ok: true });
 });
 
@@ -105,12 +116,13 @@ app.get('/api/admin/me', requireAuth, (req, res) => res.json({ username: db.get(
 app.get('/api/public', (req, res) => {
   const d = db.get();
   res.json({
-    settings: publicSettings(),
+    settings: d.settings,
+    today: todayStr(),
     services: d.services.filter((s) => s.active).sort((a, b) => a.order - b.order),
     barbers: d.barbers.filter((b) => b.active).sort((a, b) => a.order - b.order)
       .map(({ id, name, title, bio }) => ({ id, name, title, bio })),
     testimonials: d.testimonials,
-    gallery: d.gallery.map(({ id, file, caption }) => ({ id, url: '/uploads/' + file, caption })),
+    gallery: d.gallery.map((g) => ({ id: g.id, url: photoUrl(g), caption: g.caption })),
   });
 });
 
@@ -123,7 +135,7 @@ app.get('/api/availability', (req, res) => {
   res.json({ slots: availability(date, service, barberId || null).map((s) => s.time) });
 });
 
-app.post('/api/appointments', (req, res) => {
+app.post('/api/appointments', async (req, res) => {
   const b = req.body || {};
   const name = str(b.name, 100), phone = str(b.phone, 40), email = str(b.email, 120), notes = str(b.notes, 500);
   if (!name || !phone) return bad(res, 'Name and phone are required');
@@ -142,16 +154,16 @@ app.post('/api/appointments', (req, res) => {
     status: 'pending', source: 'online', createdAt: new Date().toISOString(),
   };
   d.appointments.push(appt);
-  db.save();
+  await db.save();
   res.status(201).json({ ok: true, appointment: { date: appt.date, time: appt.time, barberName: appt.barberName, serviceName: appt.serviceName } });
 });
 
-app.post('/api/messages', (req, res) => {
+app.post('/api/messages', async (req, res) => {
   const b = req.body || {};
   const name = str(b.name, 100), email = str(b.email, 120), message = str(b.message, 2000);
   if (!name || !email || !message) return bad(res, 'All fields are required');
   db.get().messages.push({ id: db.newId(), name, email, message, read: false, createdAt: new Date().toISOString() });
-  db.save();
+  await db.save();
   res.status(201).json({ ok: true });
 });
 
@@ -167,11 +179,13 @@ admin.get('/dashboard', (req, res) => {
   const upcoming = active.filter((a) => a.date > today || (a.date === today && a.status !== 'completed'))
     .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).slice(0, 8);
   res.json({
+    today,
     todayCount: active.filter((a) => a.date === today).length,
     pendingCount: d.appointments.filter((a) => a.status === 'pending').length,
     monthRevenue: d.appointments.filter((a) => a.status === 'completed' && a.date.startsWith(month)).reduce((s, a) => s + a.price, 0),
     unreadMessages: d.messages.filter((m) => !m.read).length,
     totalClients: new Set(d.appointments.map((a) => a.phone)).size,
+    storage: db.storage(),
     upcoming,
   });
 });
@@ -182,7 +196,7 @@ admin.get('/appointments', (req, res) => {
   const { status, date, q } = req.query;
   if (status) list = list.filter((a) => a.status === status);
   if (date) list = list.filter((a) => a.date === date);
-  if (q) { const s = q.toLowerCase(); list = list.filter((a) => [a.name, a.phone, a.email].some((v) => (v || '').toLowerCase().includes(s))); }
+  if (q) { const s = String(q).toLowerCase(); list = list.filter((a) => [a.name, a.phone, a.email].some((v) => (v || '').toLowerCase().includes(s))); }
   list.sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
   res.json(list);
 });
@@ -195,85 +209,94 @@ function validateAdminAppt(b, ignoreId) {
   const service = d.services.find((s) => s.id === b.serviceId);
   const barber = d.barbers.find((x) => x.id === b.barberId);
   if (!service || !barber) return { error: 'Choose a service and barber' };
-  if (!['pending', 'confirmed', 'completed', 'cancelled', 'no-show'].includes(b.status || 'confirmed')) return { error: 'Invalid status' };
-  if ((b.status || 'confirmed') !== 'cancelled' && barberBusy(barber.id, b.date, toMin(b.time), service.duration, ignoreId))
+  const status = b.status || 'confirmed';
+  if (!STATUSES.includes(status)) return { error: 'Invalid status' };
+  if (status !== 'cancelled' && barberBusy(barber.id, b.date, toMin(b.time), service.duration, ignoreId))
     return { error: `${barber.name} already has an appointment at that time` };
   return {
     value: {
       name, phone, email: str(b.email, 120), notes: str(b.notes, 500), date: b.date, time: b.time,
       serviceId: service.id, serviceName: service.name, price: Number(b.price ?? service.price) || 0, duration: service.duration,
-      barberId: barber.id, barberName: barber.name, status: b.status || 'confirmed',
+      barberId: barber.id, barberName: barber.name, status,
     },
   };
 }
 
-admin.post('/appointments', (req, res) => {
+admin.post('/appointments', async (req, res) => {
   const r = validateAdminAppt(req.body || {});
   if (r.error) return bad(res, r.error);
   const appt = { id: db.newId(), ...r.value, source: 'admin', createdAt: new Date().toISOString() };
-  db.get().appointments.push(appt); db.save();
+  db.get().appointments.push(appt);
+  await db.save();
   res.status(201).json(appt);
 });
 
-admin.put('/appointments/:id', (req, res) => {
+admin.put('/appointments/:id', async (req, res) => {
   const a = db.get().appointments.find((x) => x.id === req.params.id);
   if (!a) return bad(res, 'Not found', 404);
   const body = { ...a, ...req.body };
   if (req.body.serviceId && req.body.serviceId !== a.serviceId && req.body.price === undefined) delete body.price;
   const r = validateAdminAppt(body, a.id);
   if (r.error) return bad(res, r.error);
-  Object.assign(a, r.value); db.save();
+  Object.assign(a, r.value);
+  await db.save();
   res.json(a);
 });
 
-admin.patch('/appointments/:id/status', (req, res) => {
+admin.patch('/appointments/:id/status', async (req, res) => {
   const a = db.get().appointments.find((x) => x.id === req.params.id);
   if (!a) return bad(res, 'Not found', 404);
   const { status } = req.body || {};
-  if (!['pending', 'confirmed', 'completed', 'cancelled', 'no-show'].includes(status)) return bad(res, 'Invalid status');
+  if (!STATUSES.includes(status)) return bad(res, 'Invalid status');
   if (a.status === 'cancelled' && status !== 'cancelled' && barberBusy(a.barberId, a.date, toMin(a.time), a.duration, a.id))
     return bad(res, 'That slot has been taken by another booking');
-  a.status = status; db.save();
+  a.status = status;
+  await db.save();
   res.json(a);
 });
 
-admin.delete('/appointments/:id', (req, res) => {
+admin.delete('/appointments/:id', async (req, res) => {
   const d = db.get();
-  d.appointments = d.appointments.filter((x) => x.id !== req.params.id); db.save();
+  d.appointments = d.appointments.filter((x) => x.id !== req.params.id);
+  await db.save();
   res.json({ ok: true });
 });
 
 // Generic CRUD for services & barbers
 function crud(collection, clean) {
   admin.get(`/${collection}`, (req, res) => res.json([...db.get()[collection]].sort((a, b) => a.order - b.order)));
-  admin.post(`/${collection}`, (req, res) => {
+  admin.post(`/${collection}`, async (req, res) => {
     const r = clean(req.body || {});
     if (r.error) return bad(res, r.error);
     const list = db.get()[collection];
     const item = { id: db.newId(), order: list.length, ...r.value };
-    list.push(item); db.save();
+    list.push(item);
+    await db.save();
     res.status(201).json(item);
   });
-  admin.put(`/${collection}/:id`, (req, res) => {
+  admin.put(`/${collection}/:id`, async (req, res) => {
     const item = db.get()[collection].find((x) => x.id === req.params.id);
     if (!item) return bad(res, 'Not found', 404);
     const r = clean({ ...item, ...req.body });
     if (r.error) return bad(res, r.error);
-    Object.assign(item, r.value); db.save();
+    Object.assign(item, r.value);
+    await db.save();
     res.json(item);
   });
-  admin.delete(`/${collection}/:id`, (req, res) => {
+  admin.delete(`/${collection}/:id`, async (req, res) => {
     const d = db.get();
-    d[collection] = d[collection].filter((x) => x.id !== req.params.id); db.save();
+    d[collection] = d[collection].filter((x) => x.id !== req.params.id);
+    await db.save();
     res.json({ ok: true });
   });
-  admin.post(`/${collection}/:id/move`, (req, res) => {
+  admin.post(`/${collection}/:id/move`, async (req, res) => {
     const list = [...db.get()[collection]].sort((a, b) => a.order - b.order);
     const i = list.findIndex((x) => x.id === req.params.id);
-    const j = i + (req.body.dir === 'up' ? -1 : 1);
+    const j = i + ((req.body || {}).dir === 'up' ? -1 : 1);
     if (i < 0 || j < 0 || j >= list.length) return res.json({ ok: true });
     [list[i], list[j]] = [list[j], list[i]];
-    list.forEach((x, k) => { x.order = k; }); db.save();
+    list.forEach((x, k) => { x.order = k; });
+    await db.save();
     res.json({ ok: true });
   });
 }
@@ -295,45 +318,54 @@ crud('barbers', (b) => {
 
 // Messages
 admin.get('/messages', (req, res) => res.json([...db.get().messages].reverse()));
-admin.patch('/messages/:id', (req, res) => {
+admin.patch('/messages/:id', async (req, res) => {
   const m = db.get().messages.find((x) => x.id === req.params.id);
   if (!m) return bad(res, 'Not found', 404);
-  m.read = !!req.body.read; db.save(); res.json(m);
+  m.read = !!(req.body || {}).read;
+  await db.save();
+  res.json(m);
 });
-admin.delete('/messages/:id', (req, res) => {
-  const d = db.get(); d.messages = d.messages.filter((x) => x.id !== req.params.id); db.save(); res.json({ ok: true });
+admin.delete('/messages/:id', async (req, res) => {
+  const d = db.get();
+  d.messages = d.messages.filter((x) => x.id !== req.params.id);
+  await db.save();
+  res.json({ ok: true });
 });
 
-// Gallery (photo uploads)
+// Gallery (photo uploads). The admin panel shrinks photos before sending, so they stay well under Vercel's 4.5 MB limit.
 const IMG_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
-const galleryUrl = (g) => ({ ...g, url: '/uploads/' + g.file });
-admin.get('/gallery', (req, res) => res.json(db.get().gallery.map(galleryUrl)));
-admin.post('/gallery', express.raw({ type: Object.keys(IMG_TYPES), limit: '8mb' }), (req, res) => {
+const withUrl = (g) => ({ ...g, url: photoUrl(g) });
+admin.get('/gallery', (req, res) => res.json(db.get().gallery.map(withUrl)));
+admin.post('/gallery', express.raw({ type: Object.keys(IMG_TYPES), limit: '4mb' }), async (req, res) => {
   const ext = IMG_TYPES[req.headers['content-type']];
   if (!ext || !Buffer.isBuffer(req.body) || !req.body.length) return bad(res, 'Please upload a JPG, PNG or WebP image');
   const id = db.newId();
   const file = `${id}.${ext}`;
-  fs.writeFileSync(path.join(db.UPLOAD_DIR, file), req.body);
-  const item = { id, file, caption: str(req.query.caption, 120), createdAt: new Date().toISOString() };
-  db.get().gallery.push(item); db.save();
-  res.status(201).json(galleryUrl(item));
+  const url = await db.savePhoto(file, req.body, req.headers['content-type']);
+  const item = { id, file, url, caption: str(req.query.caption, 120), createdAt: new Date().toISOString() };
+  db.get().gallery.push(item);
+  await db.save();
+  res.status(201).json(item);
 });
-admin.put('/gallery/:id', (req, res) => {
+admin.put('/gallery/:id', async (req, res) => {
   const g = db.get().gallery.find((x) => x.id === req.params.id);
   if (!g) return bad(res, 'Not found', 404);
-  g.caption = str(req.body.caption, 120); db.save(); res.json(galleryUrl(g));
+  g.caption = str((req.body || {}).caption, 120);
+  await db.save();
+  res.json(withUrl(g));
 });
-admin.delete('/gallery/:id', (req, res) => {
+admin.delete('/gallery/:id', async (req, res) => {
   const d = db.get();
   const g = d.gallery.find((x) => x.id === req.params.id);
-  if (g) fs.rmSync(path.join(db.UPLOAD_DIR, path.basename(g.file)), { force: true });
-  d.gallery = d.gallery.filter((x) => x.id !== req.params.id); db.save();
+  if (g) await db.deletePhoto(withUrl(g));
+  d.gallery = d.gallery.filter((x) => x.id !== req.params.id);
+  await db.save();
   res.json({ ok: true });
 });
 
 // Settings
 admin.get('/settings', (req, res) => res.json(db.get().settings));
-admin.put('/settings', (req, res) => {
+admin.put('/settings', async (req, res) => {
   const b = req.body || {};
   const s = db.get().settings;
   for (const k of ['shopName', 'tagline', 'phone', 'email', 'address', 'instagram']) if (k in b) s[k] = str(b[k], 200);
@@ -341,6 +373,10 @@ admin.put('/settings', (req, res) => {
   if ('accentColor' in b) {
     if (!/^#[0-9a-f]{6}$/i.test(b.accentColor)) return bad(res, 'Invalid colour');
     s.accentColor = b.accentColor;
+  }
+  if ('timezone' in b) {
+    if (!validZone(b.timezone)) return bad(res, 'Unknown time zone');
+    s.timezone = b.timezone;
   }
   if ('slotMinutes' in b) {
     const n = Number(b.slotMinutes);
@@ -356,30 +392,38 @@ admin.put('/settings', (req, res) => {
       s.hours[day] = { open: h.open, close: h.close, closed: !!h.closed };
     }
   }
-  db.save();
+  await db.save();
   res.json(s);
 });
 
-admin.put('/password', (req, res) => {
+admin.put('/password', async (req, res) => {
   const { current, next, username } = req.body || {};
   const a = db.get().admin;
   if (!db.verifyPassword(current || '', a.password)) return bad(res, 'Current password is incorrect');
   if (!next || String(next).length < 8) return bad(res, 'New password must be at least 8 characters');
   a.password = db.hashPassword(String(next));
   if (username && str(username, 40)) a.username = str(username, 40);
-  db.save();
+  await db.save();
   res.json({ ok: true });
 });
 
 app.use('/api/admin', admin);
-app.use((err, req, res, next) => {
-  if (err.type === 'entity.too.large') return bad(res, 'Image is too large (max 8 MB)', 413);
-  next(err);
-});
 app.use('/api', (req, res) => bad(res, 'Not found', 404));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html')));
 
-app.listen(PORT, () => {
-  console.log(`Cuts & Style running at http://localhost:${PORT}`);
-  console.log(`Admin panel:          http://localhost:${PORT}/admin`);
+// Errors: show a clear message instead of crashing.
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.too.large') return bad(res, 'File is too large', 413);
+  console.error(err);
+  if (res.headersSent) return next(err);
+  bad(res, err.message || 'Something went wrong', 500);
 });
+
+// Run directly on your computer with "npm start". On Vercel the app is imported instead.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Cuts & Style running at http://localhost:${PORT}`);
+    console.log(`Admin panel:          http://localhost:${PORT}/admin`);
+  });
+}
+
+module.exports = app;

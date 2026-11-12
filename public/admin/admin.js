@@ -105,8 +105,12 @@
     const d = await api('/admin/dashboard');
     $('#view-actions').innerHTML = '<button class="btn btn-gold" id="new-appt">+ New appointment</button>';
     $('#new-appt').onclick = () => editAppointment(null, dashboard);
-    const today = localDate();
+    const today = d.today || localDate();
+    const st = d.storage || {};
+    const warn = [st.database === 'missing' && 'Database not connected: bookings cannot be saved. In Vercel open Storage → connect <b>Upstash Redis</b>, then Redeploy.',
+      st.photos === 'missing' && 'Photo storage not connected: gallery uploads will fail. In Vercel open Storage → create a <b>Blob</b> store, then Redeploy.'].filter(Boolean);
     $('#view').innerHTML = `
+      ${warn.map((w) => `<div class="card" style="border-color:#e8c7c4;background:#fbeeed;color:#8a2a24">⚠️ ${w}</div>`).join('')}
       <div class="stats">
         <div class="stat"><span>Today's bookings</span><strong>${d.todayCount}</strong></div>
         <div class="stat"><span>Pending confirmation</span><strong>${d.pendingCount}</strong></div>
@@ -266,12 +270,25 @@
   });
 
   // ---------- Gallery ----------
+  // Resize big photos in the browser (max 1600px, JPEG) so uploads are small and fast.
+  async function shrink(file) {
+    if (file.size < 900 * 1024) return file;
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(bmp, 0, 0, c.width, c.height);
+    return new Promise((resolve) => c.toBlob((b) => resolve(b || file), 'image/jpeg', 0.85));
+  }
+
   async function gallery() {
     const items = await api('/admin/gallery');
     $('#view').innerHTML = `
       <label class="drop" id="drop">
         <strong>📷 Click to choose photos</strong> or drag &amp; drop them here
-        <span class="muted">JPG, PNG or WebP · up to 8 MB each · they appear on the website's Gallery section</span>
+        <span class="muted">JPG, PNG or WebP · large photos are resized automatically · they appear on the website's Gallery section</span>
         <input type="file" id="files" accept="image/jpeg,image/png,image/webp" multiple hidden>
       </label>
       <p class="muted" id="up-status"></p>
@@ -285,10 +302,11 @@
       files = [...files].filter((f) => /^image\/(jpeg|png|webp)$/.test(f.type));
       if (!files.length) return toast('Please choose JPG, PNG or WebP photos', true);
       let n = 0;
-      for (const f of files) {
+      for (const original of files) {
         $('#up-status').textContent = `Uploading ${++n} of ${files.length}…`;
+        const f = await shrink(original).catch(() => original);
         const r = await fetch('/api/admin/gallery', { method: 'POST', headers: { 'Content-Type': f.type }, body: f });
-        if (!r.ok) { const j = await r.json().catch(() => ({})); toast(`${f.name}: ${j.error || 'upload failed'}`, true); }
+        if (!r.ok) { const j = await r.json().catch(() => ({})); toast(`${original.name}: ${j.error || 'upload failed'}`, true); }
       }
       toast('Photos uploaded'); gallery();
     };
@@ -356,6 +374,10 @@
           <input type="time" name="${k}-close" value="${s.hours[k].close}">
           <label class="check"><input type="checkbox" name="${k}-closed" ${s.hours[k].closed ? 'checked' : ''}> Closed</label>
         </div>`).join('')}
+        <label style="margin-top:1rem;max-width:260px">Shop time zone
+          <input name="timezone" value="${esc(s.timezone || 'Asia/Kathmandu')}" list="tz-list" required>
+          <datalist id="tz-list">${['Asia/Kathmandu', 'Asia/Kolkata', 'Asia/Dubai', 'Europe/London', 'America/New_York', 'Australia/Sydney'].map((z) => `<option value="${z}">`).join('')}</datalist>
+        </label>
         <label style="margin-top:1rem;max-width:260px">Booking slot interval
           <select name="slotMinutes">${[10, 15, 20, 30, 45, 60].map((n) => `<option value="${n}" ${n === s.slotMinutes ? 'selected' : ''}>Every ${n} minutes</option>`).join('')}</select>
         </label>
@@ -381,7 +403,7 @@
       e.preventDefault();
       const f = formObj(e.target);
       const hours = Object.fromEntries(DAYS.map(([k]) => [k, { open: f[`${k}-open`], close: f[`${k}-close`], closed: f[`${k}-closed`] }]));
-      try { await api('/admin/settings', { method: 'PUT', body: { hours, slotMinutes: Number(f.slotMinutes) } }); toast('Hours saved'); } catch (err) { toast(err.message, true); }
+      try { await api('/admin/settings', { method: 'PUT', body: { hours, slotMinutes: Number(f.slotMinutes), timezone: f.timezone.trim() } }); toast('Hours saved'); } catch (err) { toast(err.message, true); }
     };
     $('#pw-form').onsubmit = async (e) => {
       e.preventDefault();

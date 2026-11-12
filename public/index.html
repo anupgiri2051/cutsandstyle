@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cuts &amp; Style — Barber Shop</title>
+  <meta name="description" content="Cuts & Style barber shop. Haircuts, fades, beard trims and hot towel shaves. Book online.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💈</text></svg>">
+</head>
+<body>
+  <header class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="#top" class="logo"><span class="logo-mark">C&amp;S</span><span data-shop-name>Cuts &amp; Style</span></a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
+      <nav class="nav-links">
+        <a href="#services">Services</a>
+        <a href="#team">Barbers</a>
+        <a href="#gallery" data-gallery-link hidden>Gallery</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+        <a href="#book" class="btn btn-sm">Book now</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" id="top">
+    <div class="pole" aria-hidden="true"></div>
+    <div class="container hero-inner">
+      <p class="eyebrow">Barber shop · Est. 2026</p>
+      <h1 data-shop-name>Cuts &amp; Style</h1>
+      <p class="hero-tag" data-tagline>Sharp cuts. Clean fades. Classic style.</p>
+      <div class="hero-actions">
+        <a href="#book" class="btn">Book an appointment</a>
+        <a href="#services" class="btn btn-ghost">View prices</a>
+      </div>
+      <div class="hero-meta">
+        <div><strong id="today-status">—</strong><span>Today</span></div>
+        <div><strong data-phone>—</strong><span>Call us</span></div>
+        <div><strong data-address>—</strong><span>Find us</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="services">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">What we do</p>
+        <h2>Services &amp; prices</h2>
+      </div>
+      <div class="services" id="services-list"><p class="muted">Loading…</p></div>
+    </div>
+  </section>
+
+  <section class="section section-dark" id="team">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">The chairs</p>
+        <h2>Meet the barbers</h2>
+      </div>
+      <div class="team" id="team-list"></div>
+    </div>
+  </section>
+
+  <section class="section" id="gallery" hidden>
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Our work</p>
+        <h2>Gallery</h2>
+      </div>
+      <div class="gallery" id="gallery-list"></div>
+    </div>
+  </section>
+
+  <section class="section" id="about">
+    <div class="container about">
+      <div>
+        <p class="eyebrow">Our story</p>
+        <h2>Old-school craft, modern style</h2>
+        <p data-about class="lead"></p>
+        <ul class="perks">
+          <li>Walk-ins welcome, appointments preferred</li>
+          <li>Hot towel finish on every cut</li>
+          <li>Premium products, sterilised tools</li>
+        </ul>
+      </div>
+      <div class="card hours-card">
+        <h3>Opening hours</h3>
+        <table class="hours" id="hours-table"></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-dark" id="reviews">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Reviews</p>
+        <h2>What clients say</h2>
+      </div>
+      <div class="reviews" id="reviews-list"></div>
+    </div>
+  </section>
+
+  <section class="section" id="book">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Online booking</p>
+        <h2>Book your chair</h2>
+        <p class="muted">Choose a service, a barber and a time. We'll confirm by phone.</p>
+      </div>
+      <form class="card book-form" id="book-form" novalidate>
+        <div class="grid-2">
+          <label>Service
+            <select name="serviceId" required><option value="">Select a service</option></select>
+          </label>
+          <label>Barber
+            <select name="barberId"><option value="">Any available barber</option></select>
+          </label>
+          <label>Date
+            <input type="date" name="date" required>
+          </label>
+          <label>Time
+            <select name="time" required disabled><option value="">Pick service &amp; date first</option></select>
+          </label>
+        </div>
+        <div class="slots" id="slots" aria-live="polite"></div>
+        <div class="grid-3">
+          <label>Full name <input name="name" required maxlength="100" autocomplete="name"></label>
+          <label>Phone <input name="phone" type="tel" required maxlength="40" autocomplete="tel"></label>
+          <label>Email <span class="opt">(optional)</span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
+        </div>
+        <label>Notes <span class="opt">(optional)</span><textarea name="notes" rows="2" maxlength="500" placeholder="Anything we should know?"></textarea></label>
+        <div class="form-foot">
+          <p class="summary" id="book-summary"></p>
+          <button class="btn" type="submit">Confirm booking</button>
+        </div>
+        <p class="form-msg" id="book-msg" role="status"></p>
+      </form>
+    </div>
+  </section>
+
+  <section class="section section-dark" id="contact">
+    <div class="container contact">
+      <div>
+        <p class="eyebrow">Get in touch</p>
+        <h2>Visit or message us</h2>
+        <ul class="contact-list">
+          <li><span>Address</span><strong data-address></strong></li>
+          <li><span>Phone</span><a data-phone-link><strong data-phone></strong></a></li>
+          <li><span>Email</span><a data-email-link><strong data-email></strong></a></li>
+          <li><span>Instagram</span><a data-instagram target="_blank" rel="noopener"><strong>Follow us</strong></a></li>
+        </ul>
+      </div>
+      <form class="card contact-form" id="contact-form" novalidate>
+        <label>Name <input name="name" required maxlength="100"></label>
+        <label>Email <input name="email" type="email" required maxlength="120"></label>
+        <label>Message <textarea name="message" rows="4" required maxlength="2000"></textarea></label>
+        <button class="btn" type="submit">Send message</button>
+        <p class="form-msg" id="contact-msg" role="status"></p>
+      </form>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>© <span id="year"></span> <span data-shop-name>Cuts &amp; Style</span>. All rights reserved.</span>
+      <a href="/admin/" class="muted">Staff login</a>
+    </div>
+  </footer>
+
+  <dialog class="lightbox" id="lightbox"><button class="lb-close" aria-label="Close">×</button><img alt=""><p></p></dialog>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

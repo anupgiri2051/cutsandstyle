@@ -1,9 +1,19 @@
-// Simple JSON-file database with atomic writes. Good for a single shop.
+// Storage layer.
+// - On your computer: saves everything to data/db.json (and photos to data/uploads/).
+// - On Vercel: saves data to an Upstash Redis database (connect it in Vercel → Storage)
+//   and photos to Vercel Blob. Vercel adds the needed environment variables automatically.
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
 const FILE = process.env.DB_FILE || path.join(__dirname, 'data', 'db.json');
+const UPLOAD_DIR = path.join(path.dirname(FILE), 'uploads');
+
+const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+const KV_KEY = process.env.DB_KEY || 'cuts-and-style:db';
+const useKV = Boolean(KV_URL && KV_TOKEN);
+const onVercel = Boolean(process.env.VERCEL);
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.scryptSync(password, salt, 64).toString('hex');
@@ -35,6 +45,7 @@ function seed() {
       instagram: 'https://instagram.com/',
       slotMinutes: 30,
       accentColor: '#c39a4e',
+      timezone: 'Asia/Kathmandu',
       hours: {
         mon: day('09:00', '19:00'),
         tue: day('09:00', '19:00'),
@@ -49,6 +60,7 @@ function seed() {
       username: 'admin',
       password: hashPassword(process.env.ADMIN_PASSWORD || 'admin123'),
     },
+    sessionSecret: crypto.randomBytes(32).toString('hex'),
     services: [
       { name: 'Classic Haircut', description: 'Scissor or clipper cut, styled to finish.', price: 300, duration: 30 },
       { name: 'Skin Fade', description: 'Seamless fade down to the skin with detailed line-up.', price: 400, duration: 45 },
@@ -73,26 +85,90 @@ function seed() {
   };
 }
 
-let data;
+// Fill in fields added in later versions so older databases keep working.
+function migrate(d) {
+  let changed = false;
+  const set = (obj, key, val) => { if (obj[key] === undefined) { obj[key] = val; changed = true; } };
+  set(d, 'gallery', []);
+  set(d, 'sessionSecret', crypto.randomBytes(32).toString('hex'));
+  set(d.settings, 'accentColor', '#c39a4e');
+  set(d.settings, 'timezone', 'Asia/Kathmandu');
+  return changed;
+}
 
-function load() {
+async function kv(command) {
+  const r = await fetch(KV_URL, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(command),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j.error) throw new Error('Database error: ' + (j.error || r.status));
+  return j.result;
+}
+
+let data = null;
+
+// On Vercel, every request re-reads the database so all server copies stay in sync.
+async function load() {
+  if (useKV) {
+    const raw = await kv(['GET', KV_KEY]);
+    if (raw) {
+      data = JSON.parse(raw);
+      if (migrate(data)) await save();
+    } else {
+      data = seed();
+      await save();
+    }
+    return data;
+  }
+  if (onVercel) {
+    throw new Error('Database not connected. In Vercel, open your project → Storage → connect an Upstash Redis database, then redeploy.');
+  }
+  if (data) return data; // file mode: keep it in memory after the first read
   if (fs.existsSync(FILE)) {
     data = JSON.parse(fs.readFileSync(FILE, 'utf8'));
-    data.gallery ||= [];
-    data.settings.accentColor ||= '#c39a4e';
+    if (migrate(data)) await save();
   } else {
     data = seed();
-    save();
+    await save();
     console.log('Created new database with demo data at', FILE);
   }
   return data;
 }
 
-function save() {
+async function save() {
+  if (useKV) return kv(['SET', KV_KEY, JSON.stringify(data)]);
   fs.mkdirSync(path.dirname(FILE), { recursive: true });
   const tmp = FILE + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
   fs.renameSync(tmp, FILE);
 }
 
-module.exports = { FILE, UPLOAD_DIR: path.join(path.dirname(FILE), 'uploads'), load, save, get: () => data, newId, hashPassword, verifyPassword };
+// ---------- Photos ----------
+const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+
+async function savePhoto(fileName, buffer, contentType) {
+  if (useBlob) {
+    const { put } = require('@vercel/blob');
+    const blob = await put(`gallery/${fileName}`, buffer, { access: 'public', contentType, addRandomSuffix: false });
+    return blob.url;
+  }
+  if (onVercel) throw new Error('Photo storage not connected. In Vercel, open your project → Storage → create a Blob store, then redeploy.');
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  fs.writeFileSync(path.join(UPLOAD_DIR, fileName), buffer);
+  return '/uploads/' + fileName;
+}
+
+async function deletePhoto(item) {
+  if (/^https?:\/\//.test(item.url || '')) {
+    if (useBlob) await require('@vercel/blob').del(item.url).catch(() => {});
+  } else if (item.file) {
+    fs.rmSync(path.join(UPLOAD_DIR, path.basename(item.file)), { force: true });
+  }
+}
+
+module.exports = {
+  FILE, UPLOAD_DIR, load, save, get: () => data, newId, hashPassword, verifyPassword, savePhoto, deletePhoto,
+  storage: () => ({ database: useKV ? 'redis' : onVercel ? 'missing' : 'file', photos: useBlob ? 'blob' : onVercel ? 'missing' : 'file' }),
+};

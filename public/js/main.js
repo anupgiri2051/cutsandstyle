@@ -23,6 +23,7 @@
       data = await fetch('/api/public').then((r) => r.json());
     } catch { $('#services-list').innerHTML = '<p class="muted">Could not load services. Please refresh.</p>'; return; }
     const s = data.settings;
+    if (data.today) { form.date.min = data.today; if (!form.date.value || form.date.value < data.today) form.date.value = data.today; }
     document.title = `${s.shopName} — Barber Shop`;
     if (/^#[0-9a-f]{6}$/i.test(s.accentColor || '')) ['--gold', '--gold-2'].forEach((v) => document.documentElement.style.setProperty(v, s.accentColor));
     $$('[data-shop-name]').forEach((el) => (el.textContent = s.shopName));
