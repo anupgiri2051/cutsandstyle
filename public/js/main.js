@@ -20,8 +20,14 @@
 
   async function load() {
     try {
-      data = await fetch('/api/public').then((r) => r.json());
-    } catch { $('#services-list').innerHTML = '<p class="muted">Could not load services. Please refresh.</p>'; return; }
+      const r = await fetch('/api/public');
+      const j = await r.json().catch(() => ({ error: `Server error (${r.status})` }));
+      if (!r.ok) throw new Error(j.error || `Server error (${r.status})`);
+      data = j;
+    } catch (err) {
+      $('#services-list').innerHTML = `<p class="muted">Could not load services. Please refresh.</p><p class="muted" style="font-size:.85rem">${esc(err.message)}</p>`;
+      return;
+    }
     const s = data.settings;
     if (data.today) { form.date.min = data.today; if (!form.date.value || form.date.value < data.today) form.date.value = data.today; }
     document.title = `${s.shopName} — Barber Shop`;
