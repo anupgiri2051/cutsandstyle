@@ -399,6 +399,7 @@ admin.put('/settings', async (req, res) => {
 admin.put('/password', async (req, res) => {
   const { current, next, username } = req.body || {};
   const a = db.get().admin;
+  if (process.env.ADMIN_PASSWORD) return bad(res, 'Your password is set in Vercel (ADMIN_PASSWORD). To change it, edit that value in Vercel → Settings → Environment Variables, then Redeploy.');
   if (!db.verifyPassword(current || '', a.password)) return bad(res, 'Current password is incorrect');
   if (!next || String(next).length < 8) return bad(res, 'New password must be at least 8 characters');
   a.password = db.hashPassword(String(next));

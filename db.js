@@ -109,13 +109,27 @@ async function kv(command) {
 
 let data = null;
 
+// If ADMIN_PASSWORD is set (e.g. in Vercel → Settings → Environment Variables),
+// it is always the admin password. Changing it there + redeploying resets the login.
+let checkedHash = null;
+function applyEnvPassword(d) {
+  const envPw = process.env.ADMIN_PASSWORD;
+  if (!envPw || d.admin.password === checkedHash) return false;
+  if (verifyPassword(envPw, d.admin.password)) { checkedHash = d.admin.password; return false; }
+  d.admin.username = 'admin';
+  d.admin.password = hashPassword(envPw);
+  checkedHash = d.admin.password;
+  return true;
+}
+
 // On Vercel, every request re-reads the database so all server copies stay in sync.
 async function load() {
   if (useKV) {
     const raw = await kv(['GET', KV_KEY]);
     if (raw) {
       data = JSON.parse(raw);
-      if (migrate(data)) await save();
+      const m = migrate(data), p = applyEnvPassword(data);
+      if (m || p) await save();
     } else {
       data = seed();
       await save();
@@ -128,7 +142,8 @@ async function load() {
   if (data) return data; // file mode: keep it in memory after the first read
   if (fs.existsSync(FILE)) {
     data = JSON.parse(fs.readFileSync(FILE, 'utf8'));
-    if (migrate(data)) await save();
+    const m = migrate(data), p = applyEnvPassword(data);
+    if (m || p) await save();
   } else {
     data = seed();
     await save();

@@ -17,7 +17,7 @@ Vercel cannot save files, so connect two free storage services once:
 
 1. Vercel project → **Storage** → **Upstash for Redis** (Marketplace) → create → connect it to this project.
 2. Vercel project → **Storage** → **Blob** → create → connect it to this project.
-3. Optional: **Settings → Environment Variables** → add `ADMIN_PASSWORD` (used only when the database is first created).
+3. **Settings → Environment Variables** → add `ADMIN_PASSWORD`. While it is set, it is always the admin password (username `admin`); change it there and redeploy to reset the login.
 4. **Deployments** → latest deployment → ⋯ → **Redeploy**.
 
 The Redis integration adds `KV_REST_API_URL` / `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`)
